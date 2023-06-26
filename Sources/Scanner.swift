@@ -48,10 +48,10 @@ struct Scanner
             case ";": add_token(type: .SEMICOLON)
             case "*": add_token(type: .STAR)
 
-            case "!": add_token(type: advance_and_match(expected: "=") ? .BANG_EQUAL    : .BANG)
-            case "=": add_token(type: advance_and_match(expected: "=") ? .EQUAL_EQUAL   : .EQUAL)
-            case "<": add_token(type: advance_and_match(expected: "=") ? .LESS_EQUAL    : .LESS)
-            case ">": add_token(type: advance_and_match(expected: "=") ? .GREATER_EQUAL : .GREATER)
+            case "!": add_token(type: advance_if_next_matches("=") ? .BANG_EQUAL    : .BANG)
+            case "=": add_token(type: advance_if_next_matches("=") ? .EQUAL_EQUAL   : .EQUAL)
+            case "<": add_token(type: advance_if_next_matches("=") ? .LESS_EQUAL    : .LESS)
+            case ">": add_token(type: advance_if_next_matches("=") ? .GREATER_EQUAL : .GREATER)
 
             default: Lox.error(
                         line: self.current_line,
@@ -70,7 +70,7 @@ struct Scanner
 
 
 
-    private mutating func advance_and_match(expected: Character) -> Bool
+    private mutating func advance_if_next_matches(_ expected: Character) -> Bool
     {
         if self.is_at_end()
         {
