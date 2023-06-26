@@ -19,10 +19,11 @@ class Lox
 
 
     // MARK: - Public methods
-    public func error(line:     UInt,
-               message:  String)
+    public static func error(
+        line:     Int,
+        message:  String)
     {
-        self.report(line: line, where: "", message: message)
+        Self.report(line: line, where: "", message: message)
     }
 
 
@@ -38,7 +39,7 @@ class Lox
             }
 
             self.run(source: line)
-            self.had_error = false
+            Self.had_error = false
         }
     }
 
@@ -55,7 +56,7 @@ class Lox
 
         self.run(source: file_contents)
 
-        if (self.had_error)
+        if (Self.had_error)
         {
             fatalError()
         }
@@ -77,16 +78,17 @@ class Lox
 
 
 
-    private func report(line:           UInt,
-                        where location: String,
-                        message:        String)
+    private static func report(
+        line:           Int,
+        where location: String,
+        message:        String)
     {
         print("[", location, ":", line, "] ", message)
-        self.had_error = true
+        Self.had_error = true
     }
 
 
 
     // MARK: - Members
-    private var had_error = false
+    private static var had_error = false
 }
