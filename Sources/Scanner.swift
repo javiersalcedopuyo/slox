@@ -32,11 +32,78 @@ struct Scanner
 
 
 
-    private func scan_token()
+    private mutating func scan_token()
     {
-        // TODO: self.advance()
+        let c = self.advance()
+        switch c
+        {
+            case "(": add_token(type: .LEFT_PARENTHESIS)
+            case ")": add_token(type: .RIGHT_PARENTHESIS)
+            case "{": add_token(type: .LEFT_BRACE)
+            case "}": add_token(type: .RIGHT_BRACE)
+            case ",": add_token(type: .COMMA)
+            case ".": add_token(type: .DOT)
+            case "-": add_token(type: .MINUS)
+            case "+": add_token(type: .PLUS)
+            case ";": add_token(type: .SEMICOLON)
+            case "*": add_token(type: .STAR)
+
+            case "!": add_token(type: advance_and_match(expected: "=") ? .BANG_EQUAL    : .BANG)
+            case "=": add_token(type: advance_and_match(expected: "=") ? .EQUAL_EQUAL   : .EQUAL)
+            case "<": add_token(type: advance_and_match(expected: "=") ? .LESS_EQUAL    : .LESS)
+            case ">": add_token(type: advance_and_match(expected: "=") ? .GREATER_EQUAL : .GREATER)
+
+            default: Lox.error(
+                        line: self.current_line,
+                        message: "Unexpected character: \(c)")
+        }
     }
 
+
+
+    private mutating func advance() -> Character
+    {
+        let index = self.source.index(self.source.startIndex, offsetBy: self.current_character)
+        self.current_character += 1
+        return self.source[index]
+    }
+
+
+
+    private mutating func advance_and_match(expected: Character) -> Bool
+    {
+        if self.is_at_end()
+        {
+            return false
+        }
+
+        let index = self.source.index(self.source.startIndex, offsetBy: self.current_character)
+        if self.source[index] != expected
+        {
+            return false
+        }
+
+        self.current_character += 1
+        return true
+    }
+
+
+
+    private mutating func add_token(
+        type: TokenType,
+        literal: Literal? = nil)
+    {
+        let start_idx = self.source.index(self.source.startIndex, offsetBy: self.current_lexeme_start)
+        let end_idx   = self.source.index(self.source.startIndex, offsetBy: self.current_character)
+        let text = self.source[start_idx..<end_idx]
+
+        self.tokens.append(
+            Token(
+                type: type,
+                lexeme: String(text),
+                literal: literal,
+                line: self.current_line))
+    }
 
 
     // MARK: - Private members

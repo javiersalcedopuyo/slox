@@ -66,7 +66,7 @@ class Lox
 
     private func run(source: String)
     {
-        let scanner = Scanner(source: source)
+        var scanner = Scanner(source: source)
         let tokens = scanner.scan_tokens()
 
         for token in tokens
