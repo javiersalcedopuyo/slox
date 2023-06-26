@@ -63,28 +63,29 @@ struct Scanner
 
     private mutating func advance() -> Character
     {
-        let index = self.source.index(self.source.startIndex, offsetBy: self.current_character)
-        self.current_character += 1
-        return self.source[index]
+        defer { self.current_character += 1 }
+        return peek()
     }
 
 
 
     private mutating func advance_if_next_matches(_ expected: Character) -> Bool
     {
-        if self.is_at_end()
-        {
-            return false
-        }
-
-        let index = self.source.index(self.source.startIndex, offsetBy: self.current_character)
-        if self.source[index] != expected
+        if self.is_at_end() || peek() != expected
         {
             return false
         }
 
         self.current_character += 1
         return true
+    }
+
+
+
+    private func peek() -> Character
+    {
+        let index = self.source.index(self.source.startIndex, offsetBy: self.current_character)
+        return self.source[index]
     }
 
 
