@@ -53,10 +53,70 @@ struct Scanner
             case "<": add_token(type: advance_if_next_matches("=") ? .LESS_EQUAL    : .LESS)
             case ">": add_token(type: advance_if_next_matches("=") ? .GREATER_EQUAL : .GREATER)
 
+            case "/":
+                if self.advance_if_next_matches("/")
+                {
+                    while peek() != "\n" && !self.is_at_end()
+                    {
+                        // Comments start with double slashes and go until the end of the line
+                        _ = self.advance()
+                    }
+                }
+                else
+                {
+                    add_token(type: .SLASH)
+                }
+
+            case " ", "\r", "\t":
+                // Ignore whitespace
+                break
+
+            case "\n":
+                self.current_line += 1
+
             default: Lox.error(
                         line: self.current_line,
                         message: "Unexpected character: \(c)")
         }
+    }
+
+
+
+    private mutating func add_string_token()
+    {
+        while self.peek() != "\"" && !self.is_at_end()
+        {
+            if self.peek() == "\n"
+            {
+                // Multi-line strings
+                self.current_line += 1
+            }
+            _ = self.advance()
+        }
+
+        if self.is_at_end()
+        {
+            Lox.error(
+                line: self.current_line,
+                message: "Unterminated string.")
+        }
+
+        // Consume the closing quote
+        _ = self.advance()
+
+        // Trim the opening and closing quotes
+        let start_idx = self.source.index(
+            self.source.startIndex,
+            offsetBy: self.current_lexeme_start + 1)
+
+        let end_idx = self.source.index(
+            self.source.startIndex,
+            offsetBy: self.current_character - 1)
+
+        // Add the actual string
+        let text = String( self.source[start_idx..<end_idx] )
+        // TODO: Unescape scape sequences
+        self.add_token(type: .STRING, literal: .string(text))
     }
 
 
