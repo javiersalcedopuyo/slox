@@ -74,9 +74,17 @@ struct Scanner
             case "\n":
                 self.current_line += 1
 
-            default: Lox.error(
+            default:
+                if is_digit(c)
+                {
+                    self.add_number_token()
+                }
+                else
+                {
+                    Lox.error(
                         line: self.current_line,
                         message: "Unexpected character: \(c)")
+                }
         }
     }
 
@@ -121,6 +129,42 @@ struct Scanner
 
 
 
+    private mutating func add_number_token()
+    {
+        // Find the fractional divider `.`
+        while is_digit( self.peek() )
+        {
+            _ = self.advance()
+        }
+
+        if self.peek() == "." && is_digit( self.peek_next() )
+        {
+            _ = self.advance() // Skip the divider
+            // Get to the end of the decimal part
+            while is_digit( self.peek() )
+            {
+                _ = self.advance()
+            }
+        }
+
+        guard let number_literal = Double( self.get_current_lexeme() ) else
+        {
+            let error_mesage = "Current lexeme (\(self.get_current_lexeme())) is NaN."
+            Lox.error(line:
+                self.current_line,
+                message: error_mesage)
+            return
+        }
+
+        self.add_token(
+            type: .NUMBER,
+            literal: .number( number_literal ))
+    }
+
+
+
+    /// Gets the next cahracter after self.current_character and increments the pointer
+    /// - Returns: The next character after self.current_character
     private mutating func advance() -> Character
     {
         defer { self.current_character += 1 }
