@@ -142,9 +142,26 @@ struct Scanner
 
 
 
+    /// Gets the current character being scanned
+    /// - Returns: The Character pointed by self.current_character
     private func peek() -> Character
     {
-        let index = self.source.index(self.source.startIndex, offsetBy: self.current_character)
+        let index = self.source.index(
+            self.source.startIndex,
+            offsetBy: self.current_character)
+        return self.source[index]
+    }
+
+
+
+    /// Returns the next character after self.current_character _without_ advancing the pointer
+    /// - Returns: The next character after self.current_character
+    private func peek_next() -> Character
+    {
+        let index = self.source.index(
+            self.source.startIndex,
+            offsetBy: self.current_character + 1)
+
         return self.source[index]
     }
 
