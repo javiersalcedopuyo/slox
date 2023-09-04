@@ -10,8 +10,9 @@ class Lox
         let arguments = CommandLine.arguments
         switch arguments.count
         {
-            case 0:     lox.run_prompt()
-            case 1:     lox.run(file: arguments[0])
+            // NOTE: There's always at least 1 argument, the path to the executable
+            case 1:     lox.run_prompt()
+            case 2:     lox.run(file: arguments[1])
             default:    fatalError("Too many arguments. Usage: slox [script]")
         }
     }
@@ -31,6 +32,7 @@ class Lox
     // MARK: - Private methods
     private func run_prompt()
     {
+        print("Input commands:")
         while let line = readLine()
         {
             if line == "q" || line == "quit" || line == "exit"
@@ -51,7 +53,7 @@ class Lox
                                               encoding: .utf8)
         else
         {
-            fatalError("Failed to read file")
+            fatalError("Failed to read file \(file_name)")
         }
 
         self.run(source: file_contents)
