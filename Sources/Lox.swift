@@ -32,7 +32,7 @@ class Lox
     // MARK: - Private methods
     private func run_prompt()
     {
-        print("Input commands:")
+        print("Input next command:")
         while let line = readLine()
         {
             if line == "q" || line == "quit" || line == "exit"
@@ -42,6 +42,9 @@ class Lox
 
             self.run(source: line)
             Self.had_error = false
+
+            print("---")
+            print("Input next command:")
         }
     }
 
