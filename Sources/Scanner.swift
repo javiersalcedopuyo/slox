@@ -79,6 +79,10 @@ struct Scanner
                 {
                     self.add_number_token()
                 }
+                else if is_letter(c) || c == "_"
+                {
+                    self.add_identifier_token()
+                }
                 else
                 {
                     Lox.error(
@@ -159,6 +163,22 @@ struct Scanner
         self.add_token(
             type: .NUMBER,
             literal: .number( number_literal ))
+    }
+
+
+
+    private mutating func add_identifier_token()
+    {
+        while is_alphanumeric( self.peek() )
+        {
+            _ = self.advance()
+        }
+
+        let lexeme = self.get_current_lexeme()
+        // If the current lexeme matches a keyword it's a reserved word,
+        // otherwise it's an user-defined identifier.
+        let type = Self.KEYWORDS[lexeme] ?? .IDENTIFIER
+        self.add_token(type: type)
     }
 
 
@@ -247,4 +267,24 @@ struct Scanner
     private var current_lexeme_start:   Int = 0
     private var current_character:      Int = 0
     private var current_line:           Int = 1
+
+    private static let KEYWORDS: [String: TokenType] =
+    [
+        "and":      .AND,
+        "class":    .CLASS,
+        "else":     .ELSE,
+        "false":    .FALSE,
+        "for":      .FOR,
+        "fun":      .FUN,
+        "if":       .IF,
+        "nil":      .NIL,
+        "or":       .OR,
+        "print":    .PRINT,
+        "return":   .RETURN,
+        "super":    .SUPER,
+        "this":     .THIS,
+        "true":     .TRUE,
+        "var":      .VAR,
+        "while":    .WHILE
+    ]
 }
