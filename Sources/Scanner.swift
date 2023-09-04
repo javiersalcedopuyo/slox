@@ -34,7 +34,11 @@ struct Scanner
 
     private mutating func scan_token()
     {
-        let c = self.advance()
+        guard let c = self.advance() else
+        {
+            return
+        }
+
         switch c
         {
             case "(": add_token(type: .LEFT_PARENTHESIS)
@@ -56,7 +60,7 @@ struct Scanner
             case "/":
                 if self.advance_if_next_matches("/")
                 {
-                    while !self.is_at_end() && self.peek() != "\n"
+                    while self.peek() != "\n"
                     {
                         // Comments start with double slashes and go until the end of the line
                         _ = self.advance()
@@ -87,7 +91,7 @@ struct Scanner
                 {
                     Lox.error(
                         line: self.current_line,
-                        message: "Unexpected character: \(c)")
+                        message: "Unexpected character: \(String(describing: c))")
                 }
         }
     }
@@ -136,7 +140,7 @@ struct Scanner
     private mutating func add_number_token()
     {
         // Find the fractional divider `.`
-        while is_digit( self.peek() )
+        while is_digit( self.peek() ?? "\0" )
         {
             _ = self.advance()
         }
@@ -145,7 +149,7 @@ struct Scanner
         {
             _ = self.advance() // Skip the divider
             // Get to the end of the decimal part
-            while !self.is_at_end() && is_digit( self.peek() )
+            while !self.is_at_end() && is_digit( self.peek() ?? "\0" )
             {
                 _ = self.advance()
             }
@@ -169,7 +173,7 @@ struct Scanner
 
     private mutating func add_identifier_token()
     {
-        while !self.is_at_end() && is_alphanumeric( self.peek() )
+        while !self.is_at_end() && is_alphanumeric( self.peek() ?? "\0" )
         {
             _ = self.advance()
         }
@@ -184,12 +188,9 @@ struct Scanner
 
 
     /// Gets the cahracter pointed by self.current_character and advances the pointer.
-    /// Assumes the pointer is not out of bounds.
-    /// - Returns: The character pointed by self.current_character
-    private mutating func advance() -> Character
+    /// - Returns: The character pointed by self.current_character. Nil if out of bounds.
+    private mutating func advance() -> Character?
     {
-        assert(self.current_character < self.source.count)
-
         defer { self.current_character += 1 }
         return peek()
     }
@@ -209,11 +210,14 @@ struct Scanner
 
 
 
-    /// Gets the current character being scanned. Assumes the pointer is not out of bounds.
-    /// - Returns: The Character pointed by self.current_character
-    private func peek() -> Character
+    /// Gets the current character being scanned.
+    /// - Returns: The Character pointed by self.current_character. Nil if out of bounds.
+    private func peek() -> Character?
     {
-        assert(self.current_character < self.source.count)
+        if self.is_at_end()
+        {
+            return nil
+        }
 
         let index = self.source.index(
             self.source.startIndex,
