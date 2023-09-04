@@ -56,7 +56,7 @@ struct Scanner
             case "/":
                 if self.advance_if_next_matches("/")
                 {
-                    while peek() != "\n" && !self.is_at_end()
+                    while !self.is_at_end() && self.peek() != "\n"
                     {
                         // Comments start with double slashes and go until the end of the line
                         _ = self.advance()
@@ -96,7 +96,7 @@ struct Scanner
 
     private mutating func add_string_token()
     {
-        while self.peek() != "\"" && !self.is_at_end()
+        while !self.is_at_end() && self.peek() != "\""
         {
             if self.peek() == "\n"
             {
@@ -141,11 +141,11 @@ struct Scanner
             _ = self.advance()
         }
 
-        if self.peek() == "." && is_digit( self.peek_next() )
+        if self.peek() == "." && is_digit( self.peek_next() ?? "\0" )
         {
             _ = self.advance() // Skip the divider
             // Get to the end of the decimal part
-            while is_digit( self.peek() )
+            while !self.is_at_end() && is_digit( self.peek() )
             {
                 _ = self.advance()
             }
@@ -169,7 +169,7 @@ struct Scanner
 
     private mutating func add_identifier_token()
     {
-        while is_alphanumeric( self.peek() )
+        while !self.is_at_end() && is_alphanumeric( self.peek() )
         {
             _ = self.advance()
         }
@@ -183,10 +183,13 @@ struct Scanner
 
 
 
-    /// Gets the next cahracter after self.current_character and increments the pointer
-    /// - Returns: The next character after self.current_character
+    /// Gets the cahracter pointed by self.current_character and advances the pointer.
+    /// Assumes the pointer is not out of bounds.
+    /// - Returns: The character pointed by self.current_character
     private mutating func advance() -> Character
     {
+        assert(self.current_character < self.source.count)
+
         defer { self.current_character += 1 }
         return peek()
     }
@@ -206,10 +209,12 @@ struct Scanner
 
 
 
-    /// Gets the current character being scanned
+    /// Gets the current character being scanned. Assumes the pointer is not out of bounds.
     /// - Returns: The Character pointed by self.current_character
     private func peek() -> Character
     {
+        assert(self.current_character < self.source.count)
+
         let index = self.source.index(
             self.source.startIndex,
             offsetBy: self.current_character)
@@ -219,9 +224,14 @@ struct Scanner
 
 
     /// Returns the next character after self.current_character _without_ advancing the pointer
-    /// - Returns: The next character after self.current_character
-    private func peek_next() -> Character
+    /// - Returns: The next character after self.current_character. `Nil` if out of bounds.
+    private func peek_next() -> Character?
     {
+        if self.current_character + 1 >= self.source.count
+        {
+            return nil
+        }
+
         let index = self.source.index(
             self.source.startIndex,
             offsetBy: self.current_character + 1)
