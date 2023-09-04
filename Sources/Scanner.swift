@@ -171,16 +171,27 @@ struct Scanner
         type: TokenType,
         literal: Literal? = nil)
     {
-        let start_idx = self.source.index(self.source.startIndex, offsetBy: self.current_lexeme_start)
-        let end_idx   = self.source.index(self.source.startIndex, offsetBy: self.current_character)
-        let text = self.source[start_idx..<end_idx]
-
         self.tokens.append(
             Token(
                 type: type,
-                lexeme: String(text),
+                lexeme: self.get_current_lexeme(),
                 literal: literal,
                 line: self.current_line))
+    }
+
+
+
+    private func get_current_lexeme() -> String
+    {
+        let start_idx = self.source.index(
+            self.source.startIndex,
+            offsetBy: self.current_lexeme_start)
+
+        let end_idx = self.source.index(
+            self.source.startIndex,
+            offsetBy: self.current_character)
+
+        return String( self.source[start_idx..<end_idx] )
     }
 
 
