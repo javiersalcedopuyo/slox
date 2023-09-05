@@ -52,13 +52,13 @@ struct Scanner
             case ";": add_token(type: .SEMICOLON)
             case "*": add_token(type: .STAR)
 
-            case "!": add_token(type: advance_if_next_matches("=") ? .BANG_EQUAL    : .BANG)
-            case "=": add_token(type: advance_if_next_matches("=") ? .EQUAL_EQUAL   : .EQUAL)
-            case "<": add_token(type: advance_if_next_matches("=") ? .LESS_EQUAL    : .LESS)
-            case ">": add_token(type: advance_if_next_matches("=") ? .GREATER_EQUAL : .GREATER)
+            case "!": add_token(type: advance_if_peek_matches("=") ? .BANG_EQUAL    : .BANG)
+            case "=": add_token(type: advance_if_peek_matches("=") ? .EQUAL_EQUAL   : .EQUAL)
+            case "<": add_token(type: advance_if_peek_matches("=") ? .LESS_EQUAL    : .LESS)
+            case ">": add_token(type: advance_if_peek_matches("=") ? .GREATER_EQUAL : .GREATER)
 
             case "/":
-                if self.advance_if_next_matches("/") // Simple comment
+                if self.advance_if_peek_matches("/") // Simple comment
                 {
                     while self.peek() != "\n" && !self.is_at_end()
                     {
@@ -66,7 +66,7 @@ struct Scanner
                         _ = self.advance()
                     }
                 }
-                else if self.advance_if_next_matches("*") // Block comment
+                else if self.advance_if_peek_matches("*") // Block comment
                 {
                     // TODO: Support nested block comments
                     while !self.is_at_end()
@@ -74,7 +74,7 @@ struct Scanner
                         let c = self.advance()
                         let reached_closing =
                             c == "*" &&
-                            self.advance_if_next_matches("/") // Automatically skip the closing `/`
+                            self.advance_if_peek_matches("/") // Automatically skip the closing `/`
 
                         if reached_closing
                         {
@@ -213,7 +213,10 @@ struct Scanner
 
 
 
-    private mutating func advance_if_next_matches(_ expected: Character) -> Bool
+    /// Advances `self.current_character` only if the character it points to matches the input
+    /// - Parameter expected: The character to compare
+    /// - Returns: `true` if it has advanced, `false` if it hasn't
+    private mutating func advance_if_peek_matches(_ expected: Character) -> Bool
     {
         if self.is_at_end() || peek() != expected
         {
