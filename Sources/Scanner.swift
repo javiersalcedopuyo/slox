@@ -58,12 +58,28 @@ struct Scanner
             case ">": add_token(type: advance_if_next_matches("=") ? .GREATER_EQUAL : .GREATER)
 
             case "/":
-                if self.advance_if_next_matches("/")
+                if self.advance_if_next_matches("/") // Simple comment
                 {
                     while self.peek() != "\n" && !self.is_at_end()
                     {
                         // Comments start with double slashes and go until the end of the line
                         _ = self.advance()
+                    }
+                }
+                else if self.advance_if_next_matches("*") // Block comment
+                {
+                    // TODO: Support nested block comments
+                    while !self.is_at_end()
+                    {
+                        let c = self.advance()
+                        let reached_closing =
+                            c == "*" &&
+                            self.advance_if_next_matches("/") // Automatically skip the closing `/`
+
+                        if reached_closing
+                        {
+                            break
+                        }
                     }
                 }
                 else

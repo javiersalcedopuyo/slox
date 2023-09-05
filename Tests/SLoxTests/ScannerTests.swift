@@ -72,4 +72,65 @@ final class ScannerTests: XCTestCase
         XCTAssertEqual( tokens[0].lexeme, "asdf" )
         XCTAssertEqual( tokens[1].type, .EOF )
     }
+
+
+
+    func testSingleLineBlockComment()
+    {
+        let source  = """
+            /* This is a comment */
+            asdf
+            """
+        var scanner = Scanner(source: source)
+        let tokens  = scanner.scan_tokens()
+
+        XCTAssertEqual( tokens.count, 2 )
+        XCTAssertEqual( tokens[0].type, .IDENTIFIER )
+        XCTAssertEqual( tokens[1].type, .EOF )
+    }
+
+
+
+    func testSimpleBlockComment()
+    {
+        let source = """
+        /*
+        This a comment.
+        This is another line in the same comment.
+        */
+        asdf
+        """
+
+        var scanner = Scanner(source: source)
+        let tokens  = scanner.scan_tokens()
+
+        XCTAssertEqual( tokens.count, 2 )
+        XCTAssertEqual( tokens[0].type, .IDENTIFIER )
+        XCTAssertEqual( tokens[0].lexeme, "asdf" )
+        XCTAssertEqual( tokens[1].type, .EOF )
+    }
+
+
+
+    /* TODO:
+    func testNestedBlockComment()
+    {
+        let source = """
+        /*
+        This a comment.
+        /* This is a nested block comment */
+        This is another line in the same comment.
+        */
+        asdf
+        """
+
+        var scanner = Scanner(source: source)
+        let tokens  = scanner.scan_tokens()
+
+        XCTAssertEqual( tokens.count, 2 )
+        XCTAssertEqual( tokens[0].type, .IDENTIFIER )
+        XCTAssertEqual( tokens[0].lexeme, "asdf" )
+        XCTAssertEqual( tokens[1].type, .EOF )
+    }
+    */
 }
