@@ -11,5 +11,9 @@ let package = Package(
         .executableTarget(
             name: "slox",
             path: "Sources"),
+
+        .testTarget(
+            name: "SLoxTests",
+            dependencies: ["slox"])
     ]
 )
