@@ -60,7 +60,7 @@ struct Scanner
             case "/":
                 if self.advance_if_next_matches("/")
                 {
-                    while self.peek() != "\n"
+                    while self.peek() != "\n" && !self.is_at_end()
                     {
                         // Comments start with double slashes and go until the end of the line
                         _ = self.advance()
