@@ -68,15 +68,28 @@ struct Scanner
                 }
                 else if self.advance_if_peek_matches("*") // Block comment
                 {
-                    // TODO: Support nested block comments
+                    var block_count = 1
                     while !self.is_at_end()
                     {
-                        let c = self.advance()
-                        let reached_closing =
-                            c == "*" &&
-                            self.advance_if_peek_matches("/") // Automatically skip the closing `/`
+                        let previous_character = self.advance()
 
+                        let found_new_block =
+                            previous_character == "/" &&
+                            self.advance_if_peek_matches("*") // Automatically skip the `*`
+                        if found_new_block
+                        {
+                            block_count += 1
+                        }
+
+                        let reached_closing =
+                            previous_character == "*" &&
+                            self.advance_if_peek_matches("/") // Automatically skip the closing `/`
                         if reached_closing
+                        {
+                            block_count -= 1
+                        }
+
+                        if block_count < 1
                         {
                             break
                         }

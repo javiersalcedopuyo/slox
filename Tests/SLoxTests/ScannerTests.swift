@@ -112,8 +112,7 @@ final class ScannerTests: XCTestCase
 
 
 
-    /* TODO:
-    func testNestedBlockComment()
+    func testSingleNestedBlockComment()
     {
         let source = """
         /*
@@ -132,5 +131,26 @@ final class ScannerTests: XCTestCase
         XCTAssertEqual( tokens[0].lexeme, "asdf" )
         XCTAssertEqual( tokens[1].type, .EOF )
     }
-    */
+
+
+
+    func testDoubleNestedBlockComment()
+    {
+        let source = """
+        /*
+        This a comment.
+        /* This is a nested block comment /* with another nested comment */ */
+        This is another line in the same comment.
+        */
+        asdf
+        """
+
+        var scanner = Scanner(source: source)
+        let tokens  = scanner.scan_tokens()
+
+        XCTAssertEqual( tokens.count, 2 )
+        XCTAssertEqual( tokens[0].type, .IDENTIFIER )
+        XCTAssertEqual( tokens[0].lexeme, "asdf" )
+        XCTAssertEqual( tokens[1].type, .EOF )
+    }
 }
