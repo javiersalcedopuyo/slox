@@ -2,14 +2,7 @@ struct Token
 {
     func to_string() -> String
     {
-        var literal_as_string: String
-        switch self.literal
-        {
-            case .string(let string):           literal_as_string = string
-            case .identifier(let identifier):   literal_as_string = identifier
-            case .number(let number):           literal_as_string = String(number)
-            case nil:                           literal_as_string = "nil"
-        }
+        let literal_as_string = self.literal?.to_string() ?? "nil"
         return String(describing: type) + " " +
                 lexeme + " " +
                 literal_as_string + " " +
@@ -80,4 +73,14 @@ enum Literal
     case string(String)
     case identifier(String)
     case number(Double)
+
+    public func to_string() -> String
+    {
+        switch self
+        {
+            case .string(let s):        return s
+            case .identifier(let s):    return s
+            case .number(let n):        return String(n)
+        }
+    }
 }
