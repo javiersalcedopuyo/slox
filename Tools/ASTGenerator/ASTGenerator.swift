@@ -15,10 +15,10 @@ struct ASTGenerator
         let output_dir = arguments[1]
 
         let types = [
-            "Binary: Expression left, Token operator, Expression right",
+            "Binary: Expression left, Token op, Expression right",
             "Grouping: Expression expression",
             "Literal: Object value",
-            "Unary: Token operator, Expression right"
+            "Unary: Token op, Expression right"
         ]
 
         do
