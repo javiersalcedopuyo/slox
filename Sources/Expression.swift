@@ -39,7 +39,7 @@ struct Grouping: Expression
 
 struct LiteralExp: Expression
 {
-	let value: Literal
+	let value: Literal?
 
 	func accept<R, V: Visitor>(visitor: V) -> R where V.R == R { visitor.visit(self) }
 }

@@ -17,7 +17,7 @@ struct ASTGenerator
         let types = [
             "Binary: Expression left, Token op, Expression right",
             "Grouping: Expression expression",
-            "LiteralExp: Literal value",
+            "LiteralExp: Literal? value",
             "Unary: Token op, Expression right"
         ]
 
