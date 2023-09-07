@@ -49,7 +49,14 @@ throws
 
     let output_url = URL(fileURLWithPath: output_path)
 
-    var output = "protocol " + base_name + "{}\n"
+    var output = define_visitor(base_name: base_name, types: types)
+    output += "\n\n\n"
+
+    output += "protocol " + base_name + "\n"
+    output += "{\n"
+    output += "\tfunc accept<R, V: Visitor>(visitor: V) -> R where V.R == R\n"
+    output += "}\n"
+
     for type in types
     {
         output += parse_sub_type(base_name: base_name, descriptor: type)
@@ -59,6 +66,30 @@ throws
         to: output_url,
         atomically: true,
         encoding: .utf8)
+}
+
+
+
+
+func define_visitor(base_name: String, types: [String]) -> String
+{
+    var output = "protocol Visitor\n"
+    output += "{\n"
+    output += "\tassociatedtype R\n\n"
+
+    for type in types
+    {
+        let type_name = type
+            .split(separator: ":")[0]
+            .trimmingCharacters(in: .whitespaces)
+
+        output += "\tfunc visit(_ "
+        output += type_name.lowercased() + ": " + type_name
+        output += ") -> R\n"
+    }
+
+    output += "}\n"
+    return output
 }
 
 
@@ -92,7 +123,10 @@ func parse_sub_type(base_name: String, descriptor: String) -> String
 
         output += "\tlet " + name + ": " + type + "\n"
     }
-    output += "}\n"
 
+    output += "\n"
+    output += "\tfunc accept<R, V: Visitor>(visitor: V) -> R where V.R == R { visitor.visit(self) }\n"
+
+    output += "}\n"
     return output
 }
