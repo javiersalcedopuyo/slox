@@ -2,6 +2,8 @@ struct ASTPrinter : Visitor
 {
     typealias R = String
 
+    public func print(expression: any Expression) -> String { expression.accept(visitor: self) }
+
     /// "Prettyfies" a `Binary` expression
     /// - Parameter binary: The expression to transform
     /// - Returns: The "prettyfied" expression
