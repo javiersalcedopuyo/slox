@@ -13,15 +13,15 @@ struct Parser
     private var current_token_idx = 0
 
 
-    private mutating func expression() -> Expression { self.equality() }
+    private mutating func expression() throws -> Expression { try self.equality() }
 
 
-    private mutating func equality() -> Expression
+    private mutating func equality() throws -> Expression
     {
-        var expression = self.comparison()
+        var expression = try self.comparison()
         while match_and_advance(tokens: .BANG_EQUAL, .EQUAL_EQUAL)
         {
-            expression = Binary(
+            try expression = Binary(
                 left: expression,
                 op: self.previous(),
                 right: comparison() )
@@ -30,16 +30,16 @@ struct Parser
     }
 
 
-    private mutating func comparison() -> Expression
+    private mutating func comparison() throws -> Expression
     {
-        var expression = term()
+        var expression = try term()
         while match_and_advance(tokens:
             .GREATER,
             .GREATER_EQUAL,
             .LESS,
             .LESS_EQUAL)
         {
-            expression = Binary(
+            try expression = Binary(
                 left: expression,
                 op: previous(),
                 right: term())
@@ -48,12 +48,12 @@ struct Parser
     }
 
 
-    private mutating func term() -> Expression
+    private mutating func term() throws -> Expression
     {
-        var expression = factor()
+        var expression = try factor()
         while match_and_advance(tokens: .MINUS, .PLUS)
         {
-            expression = Binary(
+            try expression = Binary(
                 left: expression,
                 op: previous(),
                 right: factor())
@@ -62,12 +62,12 @@ struct Parser
     }
 
 
-    private mutating func factor() -> Expression
+    private mutating func factor() throws -> Expression
     {
-        var expression = unary()
+        var expression = try unary()
         while match_and_advance(tokens: .SLASH, .STAR)
         {
-            expression = Binary(
+            try expression = Binary(
                 left: expression,
                 op: previous(),
                 right: unary())
@@ -76,17 +76,17 @@ struct Parser
     }
 
 
-    private mutating func unary() -> Expression
+    private mutating func unary() throws -> Expression
     {
         if match_and_advance(tokens: .BANG, .MINUS)
         {
-            return Unary(op: previous(), right: unary())
+            return try Unary(op: previous(), right: unary())
         }
-        return primary()
+        return try primary()
     }
 
 
-    private mutating func primary() -> Expression
+    private mutating func primary() throws -> Expression
     {
         if match_and_advance(tokens: .FALSE)    { return LiteralExp(value: .string("false")) }
         if match_and_advance(tokens: .TRUE)     { return LiteralExp(value: .string("true")) }
@@ -99,8 +99,12 @@ struct Parser
 
         if match_and_advance(tokens: .LEFT_PARENTHESIS)
         {
-            let expression = expression()
-            assert(self.peek().type == .RIGHT_PARENTHESIS)
+            let expression = try expression()
+
+            try _ = self.consume(
+                token_type: .RIGHT_PARENTHESIS,
+                message: "Expected `)` after expression.")
+
             return Grouping(expression: expression)
         }
 
@@ -160,4 +164,61 @@ struct Parser
         assert(self.current_token_idx > 0)
         return self.tokens[self.current_token_idx - 1]
     }
+
+
+    private mutating func consume(
+        token_type: TokenType,
+        message: String)
+    throws
+    -> Token
+    {
+        if self.check_current_token(of_type: token_type)
+        {
+            return self.advance()
+        }
+
+        throw ParserError.InvalidToken(
+            token: self.peek(),
+            message: message)
+    }
+
+
+    /// Advances until the start of the next statement, discarding the tokens in the process.
+    /// This is only meant to be called after encountering an error.
+    private mutating func sync()
+    {
+        _ = self.advance()
+        while self.is_at_end() == false
+        {
+            // If the previous token was a semicolon we're already at the start of the next statement
+            if self.previous().type == .SEMICOLON
+            {
+                return
+            }
+
+            switch self.peek().type
+            {
+                // If the current token is one of these, it's the start of a statement
+                case
+                .CLASS,
+                .FOR,
+                .FUN,
+                .IF,
+                .PRINT,
+                .RETURN,
+                .VAR,
+                .WHILE:
+                    return
+
+                // Otherwise continue
+                default: _ = self.advance()
+            }
+        }
+    }
+}
+
+
+enum ParserError : Error
+{
+    case InvalidToken(token: Token, message: String)
 }
