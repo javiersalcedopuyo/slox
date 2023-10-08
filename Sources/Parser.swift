@@ -9,6 +9,39 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct Parser
 {
+    // - MARK: Public
+    public init(tokens t: [Token])
+    {
+        self.tokens = t
+    }
+
+
+    public mutating func parse() -> Expression?
+    {
+        do
+        {
+            return try self.expression()
+        }
+        catch ParserError.ExpectedExpression(let token)
+        {
+            Lox.error(
+                line: token.line,
+                message: "Expected expression, found \(token.to_string())")
+        }
+        catch ParserError.InvalidToken(let token, let message)
+        {
+            Lox.error(line: token.line, message: message)
+        }
+        catch
+        {
+            Lox.error(line: -1, message: "Unkown parsing error.")
+        }
+
+        return nil
+    }
+
+
+    // - MARK: Private
     private let tokens: [Token]
     private var current_token_idx = 0
 
@@ -108,7 +141,7 @@ struct Parser
             return Grouping(expression: expression)
         }
 
-        fatalError("Invalid token \(self.peek().to_string())")
+        throw ParserError.ExpectedExpression(token: self.peek())
     }
 
 
@@ -221,4 +254,5 @@ struct Parser
 enum ParserError : Error
 {
     case InvalidToken(token: Token, message: String)
+    case ExpectedExpression(token: Token)
 }

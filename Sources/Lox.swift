@@ -71,14 +71,17 @@ class Lox
 
     private func run(source: String)
     {
-        var scanner = Scanner(source: source)
-        let tokens = scanner.scan_tokens()
+        var scanner     = Scanner(source: source)
+        let tokens      = scanner.scan_tokens()
+        var parser      = Parser(tokens: tokens)
+        let expression  = parser.parse()
 
-        for token in tokens
+        if Self.had_error == true || expression == nil
         {
-            // TODO:
-            print(token)
+            return;
         }
+
+        print( ASTPrinter().print(expression: expression!) )
     }
 
 
