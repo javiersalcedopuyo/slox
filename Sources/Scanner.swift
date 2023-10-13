@@ -49,8 +49,10 @@ struct Scanner
             case ".": add_token(type: .DOT)
             case "-": add_token(type: .MINUS)
             case "+": add_token(type: .PLUS)
+            case ":": add_token(type: .COLON)
             case ";": add_token(type: .SEMICOLON)
             case "*": add_token(type: .STAR)
+            case "?": add_token(type: .QUESTION_MARK)
 
             case "!": add_token(type: advance_if_peek_matches("=") ? .BANG_EQUAL    : .BANG)
             case "=": add_token(type: advance_if_peek_matches("=") ? .EQUAL_EQUAL   : .EQUAL)

@@ -52,6 +52,21 @@ struct ASTPrinter : Visitor
 
 
 
+    /// "Prettyfies" a `Ternary` expression
+    /// - Parameter ternary: The expression to transform
+    /// - Returns: The "prettyfied" expression
+    public func visit(_ ternary: Ternary) -> String
+    {
+        parenthesize(
+            name: "?:",
+            expressions:
+                ternary.condition,
+                ternary.then_branch,
+                ternary.else_branch)
+    }
+
+
+
     /// Prints expressions wrapping grouping and nesting in parenthesis
     /// - Parameters:
     ///   - name:
@@ -122,6 +137,21 @@ struct ASTPrinterReversePolishNotation: Visitor
     public func visit(_ unary: Unary) -> String
     {
         convert_to_RPN(name: unary.op.lexeme, expressions: unary.right)
+    }
+
+
+
+    /// "Prettyfies" an `Unary` expression
+    /// - Parameter unary: The expression to transform
+    /// - Returns: The "prettyfied" expression
+    public func visit(_ ternary: Ternary) -> String
+    {
+        convert_to_RPN(
+            name: "?:",
+            expressions:
+                ternary.condition,
+                ternary.then_branch,
+                ternary.else_branch)
     }
 
 

@@ -6,7 +6,7 @@ struct Token
         return String(describing: type) + " " +
                 lexeme + " " +
                 literal_as_string + " " +
-                String(line)
+                "(ln. " + String(line) + ")"
     }
 
 
@@ -28,11 +28,13 @@ enum TokenType
     case DOT
     case MINUS
     case PLUS
+    case COLON
     case SEMICOLON
     case SLASH
     case STAR
+    case QUESTION_MARK
 
-    // 2 or more character tokens
+    // Comparison tokens
     case BANG
     case BANG_EQUAL
     case EQUAL

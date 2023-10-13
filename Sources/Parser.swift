@@ -1,5 +1,6 @@
 // GRAMMAR: ////////////////////////////////////////////////////////////////////////////////////////
-// expression   -> equality ;
+// expression   -> ternary ;
+// ternary      -> equality ( "?" ternary ":" ternary )
 // equality     -> comparison ( ( "!=" | "==" ) comparision )* ;
 // comparison   -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 // term         -> factor ( ( "-" | "+" ) factor )* ;
@@ -46,7 +47,25 @@ struct Parser
     private var current_token_idx = 0
 
 
-    private mutating func expression() throws -> Expression { try self.equality() }
+    private mutating func expression() throws -> Expression { try self.ternary() }
+
+
+    private mutating func ternary() throws -> Expression
+    {
+        var expression = try self.equality()
+        if match_and_advance(tokens: .QUESTION_MARK )
+        {
+            let then_branch = try self.ternary()
+            try _ = self.consume(token_type: .COLON, message: "Expected `:` in  ternary operator.")
+            let else_branch = try self.ternary()
+
+            expression = Ternary(
+                condition: expression,
+                then_branch: then_branch,
+                else_branch: else_branch)
+        }
+        return expression
+    }
 
 
     private mutating func equality() throws -> Expression

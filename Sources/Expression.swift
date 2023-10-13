@@ -6,6 +6,7 @@ protocol Visitor
 	func visit(_ grouping: Grouping) -> R
 	func visit(_ literalexp: LiteralExp) -> R
 	func visit(_ unary: Unary) -> R
+	func visit(_ ternary: Ternary) -> R
 }
 
 
@@ -50,6 +51,17 @@ struct Unary: Expression
 {
 	let op: Token
 	let right: Expression
+
+	func accept<R, V: Visitor>(visitor: V) -> R where V.R == R { visitor.visit(self) }
+}
+
+
+
+struct Ternary: Expression
+{
+	let condition: 		Expression
+	let then_branch: 	Expression
+	let else_branch: 	Expression
 
 	func accept<R, V: Visitor>(visitor: V) -> R where V.R == R { visitor.visit(self) }
 }
