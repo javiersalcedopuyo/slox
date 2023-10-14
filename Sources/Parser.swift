@@ -1,12 +1,17 @@
 // GRAMMAR: ////////////////////////////////////////////////////////////////////////////////////////
 // expression   -> ternary ;
-// ternary      -> equality ( "?" ternary ":" ternary )
+// ternary      -> equality ( "?" ternary ":" ternary )?
 // equality     -> comparison ( ( "!=" | "==" ) comparision )* ;
 // comparison   -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 // term         -> factor ( ( "-" | "+" ) factor )* ;
 // factor       -> unary ( ( "/" | "*" ) unary )* ;
 // unary        -> ( "!" | "-" ) unary | primary ;
-// primary      -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+// primary      -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")"
+//                  // Error productions
+//                  | ( "!=" | "==" ) equality
+//                  | ( ">" | ">=" | "<" | "<=" ) comparison
+//                  | ( "+" ) term
+//                  | ( "/" | "*" ) factor ;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct Parser
 {
@@ -32,6 +37,13 @@ struct Parser
         catch ParserError.InvalidToken(let token, let message)
         {
             Lox.error(line: token.line, message: message)
+        }
+        catch ParserError.MissingLeftOperand(let token)
+        {
+            // TODO: Report the whole expression and highlight the operator
+            Lox.error(
+                line: token.line,
+                message: "Missing left-hand operand of operator `\(token.lexeme)`")
         }
         catch
         {
@@ -160,6 +172,35 @@ struct Parser
             return Grouping(expression: expression)
         }
 
+        // Error productions
+        if match_and_advance(tokens: .BANG_EQUAL, .EQUAL_EQUAL)
+        {
+            let token = self.previous()
+            try _ = self.equality() // Advance until the end of the expression
+            throw ParserError.MissingLeftOperand(token: token)
+        }
+
+        if match_and_advance(tokens: .GREATER, .GREATER_EQUAL, .LESS, .LESS_EQUAL)
+        {
+            let token = self.previous()
+            try _ = self.comparison() // Advance until the end of the expression
+            throw ParserError.MissingLeftOperand(token: token)
+        }
+
+        if match_and_advance(tokens: .PLUS)
+        {
+            let token = self.previous()
+            try _ = self.term() // Advance until the end of the expression
+            throw ParserError.MissingLeftOperand(token: token)
+        }
+
+        if match_and_advance(tokens: .SLASH, .STAR)
+        {
+            let token = self.previous()
+            try _ = self.factor() // Advance until the end of the expression
+            throw ParserError.MissingLeftOperand(token: token)
+        }
+
         throw ParserError.ExpectedExpression(token: self.peek())
     }
 
@@ -274,4 +315,5 @@ enum ParserError : Error
 {
     case InvalidToken(token: Token, message: String)
     case ExpectedExpression(token: Token)
+    case MissingLeftOperand(token: Token) // TODO: Include the expression for better error message
 }
