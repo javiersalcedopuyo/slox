@@ -12,12 +12,12 @@ struct Interpreter: Visitor
     }
 
 
-	public func visit(_ grouping: Grouping) -> R { self.evaluate(expression: grouping) }
+	public func visit(_ grouping: Grouping) throws -> R { try self.evaluate(expression: grouping) }
 
 
-	public func visit(_ unary: Unary) -> R
+	public func visit(_ unary: Unary) throws -> R
     {
-        let right = self.evaluate(expression: unary)
+        let right = try self.evaluate(expression: unary)
 
         switch unary.op.type
         {
@@ -31,10 +31,10 @@ struct Interpreter: Visitor
     }
 
 
-	public func visit(_ binary: Binary) -> R
+	public func visit(_ binary: Binary) throws -> R
     {
-        let left  = self.evaluate(expression: binary.left)
-        let right = self.evaluate(expression: binary.right)
+        let left  = try self.evaluate(expression: binary.left)
+        let right = try self.evaluate(expression: binary.right)
 
         switch binary.op.type
         {
@@ -85,22 +85,32 @@ struct Interpreter: Visitor
     }
 
 
-	public func visit(_ ternary: Ternary) -> R
+	public func visit(_ ternary: Ternary) throws -> R
     {
-        let condition = self.evaluate(expression: ternary.condition)
+        let condition = try self.evaluate(expression: ternary.condition)
         if Self.isTruthful(condition)
         {
-            return self.evaluate(expression: ternary.then_branch)
+            return try self.evaluate(expression: ternary.then_branch)
         }
         else
         {
-            return self.evaluate(expression: ternary.else_branch)
+            return try self.evaluate(expression: ternary.else_branch)
         }
     }
 
 
     // - MARK: Private
-    private func evaluate(expression: Expression) -> R { expression.accept(visitor: self) }
+    private func evaluate(expression: Expression) throws -> R
+    {
+        do
+        {
+            return try expression.accept(visitor: self)
+        }
+        catch
+        {
+            fatalError("Unknown error: \(error)")
+        }
+    }
 
 
     private static func areEqual(_ a: Any?, _ b: Any?) -> Bool { a as? NSObject == b as? NSObject }

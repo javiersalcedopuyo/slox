@@ -2,14 +2,24 @@ struct ASTPrinter : Visitor
 {
     typealias R = String
 
-    public func print(expression: any Expression) -> String { expression.accept(visitor: self) }
+    public func print(expression: any Expression) -> String
+    {
+        do
+        {
+            return try expression.accept(visitor: self)
+        }
+        catch
+        {
+            fatalError("This should be unreachable! Error: \(error)")
+        }
+    }
 
     /// "Prettyfies" a `Binary` expression
     /// - Parameter binary: The expression to transform
     /// - Returns: The "prettyfied" expression
-    public func visit(_ binary: Binary) -> String
+    public func visit(_ binary: Binary) throws -> String
     {
-        parenthesize(
+        try parenthesize(
             name: binary.op.lexeme,
             expressions:
                 binary.left,
@@ -21,9 +31,9 @@ struct ASTPrinter : Visitor
     /// "Prettyfies" a `Grouping` expression
     /// - Parameter grouping: The expression to transform
     /// - Returns: The "prettyfied" expression
-    public func visit(_ grouping: Grouping) -> String
+    public func visit(_ grouping: Grouping) throws -> String
     {
-        parenthesize(name: "group", expressions: grouping.expression)
+        try parenthesize(name: "group", expressions: grouping.expression)
     }
 
 
@@ -45,9 +55,9 @@ struct ASTPrinter : Visitor
     /// "Prettyfies" an `Unary` expression
     /// - Parameter unary: The expression to transform
     /// - Returns: The "prettyfied" expression
-    public func visit(_ unary: Unary) -> String
+    public func visit(_ unary: Unary) throws -> String
     {
-        parenthesize(name: unary.op.lexeme, expressions: unary.right)
+        try parenthesize(name: unary.op.lexeme, expressions: unary.right)
     }
 
 
@@ -55,9 +65,9 @@ struct ASTPrinter : Visitor
     /// "Prettyfies" a `Ternary` expression
     /// - Parameter ternary: The expression to transform
     /// - Returns: The "prettyfied" expression
-    public func visit(_ ternary: Ternary) -> String
+    public func visit(_ ternary: Ternary) throws -> String
     {
-        parenthesize(
+        try parenthesize(
             name: "?:",
             expressions:
                 ternary.condition,
@@ -72,13 +82,13 @@ struct ASTPrinter : Visitor
     ///   - name:
     ///   - expressions:
     /// - Returns: The wrapped expression(s)
-    private func parenthesize(name: String, expressions: Expression...) -> String
+    private func parenthesize(name: String, expressions: Expression...) throws -> String
     {
         var output = "(" + name
         for expression in expressions
         {
             output += " "
-            output += expression.accept(visitor: self)
+            output += try expression.accept(visitor: self)
         }
         output += ")"
         return output
@@ -91,14 +101,24 @@ struct ASTPrinterReversePolishNotation: Visitor
 {
     typealias R = String
 
-    public func print(expression: any Expression) -> String { expression.accept(visitor: self) }
+    public func print(expression: any Expression) -> String
+    {
+        do
+        {
+            return try expression.accept(visitor: self)
+        }
+        catch
+        {
+            fatalError("This should be unreachable! Error: \(error)")
+        }
+    }
 
     /// "Prettyfies" a `Binary` expression
     /// - Parameter binary: The expression to transform
     /// - Returns: The "prettyfied" expression
-    public func visit(_ binary: Binary) -> String
+    public func visit(_ binary: Binary) throws -> String
     {
-        convert_to_RPN(
+        try convert_to_RPN(
             name: binary.op.lexeme,
             expressions:
                 binary.left,
@@ -110,9 +130,9 @@ struct ASTPrinterReversePolishNotation: Visitor
     /// "Prettyfies" a `Grouping` expression
     /// - Parameter grouping: The expression to transform
     /// - Returns: The "prettyfied" expression
-    public func visit(_ grouping: Grouping) -> String
+    public func visit(_ grouping: Grouping) throws -> String
     {
-        convert_to_RPN(name: "group", expressions: grouping.expression)
+        try convert_to_RPN(name: "group", expressions: grouping.expression)
     }
 
 
@@ -134,9 +154,9 @@ struct ASTPrinterReversePolishNotation: Visitor
     /// "Prettyfies" an `Unary` expression
     /// - Parameter unary: The expression to transform
     /// - Returns: The "prettyfied" expression
-    public func visit(_ unary: Unary) -> String
+    public func visit(_ unary: Unary) throws -> String
     {
-        convert_to_RPN(name: unary.op.lexeme, expressions: unary.right)
+        try convert_to_RPN(name: unary.op.lexeme, expressions: unary.right)
     }
 
 
@@ -144,9 +164,9 @@ struct ASTPrinterReversePolishNotation: Visitor
     /// "Prettyfies" an `Unary` expression
     /// - Parameter unary: The expression to transform
     /// - Returns: The "prettyfied" expression
-    public func visit(_ ternary: Ternary) -> String
+    public func visit(_ ternary: Ternary) throws -> String
     {
-        convert_to_RPN(
+        try convert_to_RPN(
             name: "?:",
             expressions:
                 ternary.condition,
@@ -161,12 +181,12 @@ struct ASTPrinterReversePolishNotation: Visitor
     ///   - name:
     ///   - expressions:
     /// - Returns: The wrapped expression(s)
-    private func convert_to_RPN(name: String, expressions: Expression...) -> String
+    private func convert_to_RPN(name: String, expressions: Expression...) throws -> String
     {
         var output = ""
         for expression in expressions
         {
-            output += expression.accept(visitor: self) + " "
+            output += try expression.accept(visitor: self) + " "
         }
 
         return output + name + " "
