@@ -24,6 +24,16 @@ class Lox
         line:     Int,
         message:  String)
     {
+        Self.had_error = true
+        Self.report(line: line, where: "", message: message)
+    }
+
+
+    public static func runtimeError(
+        line:     Int,
+        message:  String)
+    {
+        Self.had_runtime_error = true
         Self.report(line: line, where: "", message: message)
     }
 
@@ -61,9 +71,13 @@ class Lox
 
         self.run(source: file_contents)
 
-        if (Self.had_error)
+        if Self.had_error
         {
-            fatalError()
+            exit(65)
+        }
+        if Self.had_runtime_error
+        {
+            exit(70)
         }
     }
 
@@ -81,7 +95,7 @@ class Lox
             return;
         }
 
-        print( ASTPrinter().print(expression: expression!) )
+        Self.interpreter.interpret(expression: expression!)
     }
 
 
@@ -92,11 +106,12 @@ class Lox
         message:        String)
     {
         print("[", location, ":", line, "] ", message)
-        Self.had_error = true
     }
 
 
 
     // MARK: - Members
     private static var had_error = false
+    private static var had_runtime_error = false
+    private static var interpreter = Interpreter()
 }

@@ -5,23 +5,57 @@ struct Interpreter: Visitor
     typealias R = Any?
 
     // - MARK: Public
-	public func visit(_ literalexp: LiteralExp) -> R
+    public func interpret(expression: Expression)
     {
-        assert( literalexp.value != nil )
-        return literalexp.value!
+        do
+        {
+            let value = try self.evaluate(expression: expression)
+            print( try Self.stringify(value) )
+        }
+        catch RuntimeError.ExpectedNumericOperand(let optr)
+        {
+            Lox.runtimeError(line: optr.line, message: "❌ RUNTIME ERROR: Expected numeric operand")
+        }
+        catch RuntimeError.MismatchingOperands(let optr)
+        {
+            Lox.runtimeError(
+                line: optr.line,message: "❌ RUNTIME ERROR: Mismatching operands")
+        }
+        catch
+        {
+            Lox.runtimeError(line: -1, message: "UNKOWN RUNTIME ERROR")
+        }
     }
 
 
-	public func visit(_ grouping: Grouping) throws -> R { try self.evaluate(expression: grouping) }
+
+	public func visit(_ literalexp: LiteralExp) -> R
+    {
+        assert( literalexp.value != nil )
+        switch literalexp.value
+        {
+            case .number(let n): return n
+            case .string(let s): return s
+            case .identifier(let i): return i // TODO:
+            case .none: return nil
+        }
+    }
+
+
+	public func visit(_ grouping: Grouping) throws -> R
+    {
+        try self.evaluate(expression: grouping.expression)
+    }
 
 
 	public func visit(_ unary: Unary) throws -> R
     {
-        let right = try self.evaluate(expression: unary)
+        let right = try self.evaluate(expression: unary.right)
 
         switch unary.op.type
         {
             case .MINUS:
+                try Self.validateNumericOperands(operator: unary.op, operands: right)
                 return -(right as! Double)
             case .BANG:
                 return !Self.isTruthful(right)
@@ -40,12 +74,16 @@ struct Interpreter: Visitor
         {
             // Comparison
             case .GREATER:
+                try Self.validateNumericOperands(operator: binary.op, operands: left, right)
                 return (left as! Double) > (right as! Double)
             case .GREATER_EQUAL:
+                try Self.validateNumericOperands(operator: binary.op, operands: left, right)
                 return (left as! Double) >= (right as! Double)
             case .LESS:
+                try Self.validateNumericOperands(operator: binary.op, operands: left, right)
                 return (left as! Double) < (right as! Double)
             case .LESS_EQUAL:
+                try Self.validateNumericOperands(operator: binary.op, operands: left, right)
                 return (left as! Double) <= (right as! Double)
 
             // Equality
@@ -56,10 +94,13 @@ struct Interpreter: Visitor
 
             // Arithmetic
             case .MINUS:
+                try Self.validateNumericOperands(operator: binary.op, operands: left, right)
                 return (left as! Double) - (right as! Double)
             case .SLASH:
+                try Self.validateNumericOperands(operator: binary.op, operands: left, right)
                 return (left as! Double) / (right as! Double)
             case .STAR:
+                try Self.validateNumericOperands(operator: binary.op, operands: left, right)
                 return (left as! Double) * (right as! Double)
             case .PLUS:
                 if
@@ -76,7 +117,7 @@ struct Interpreter: Visitor
                 }
                 else
                 {
-                    return nil
+                    throw RuntimeError.MismatchingOperands(operator: binary.op)
                 }
 
             default:
@@ -100,17 +141,7 @@ struct Interpreter: Visitor
 
 
     // - MARK: Private
-    private func evaluate(expression: Expression) throws -> R
-    {
-        do
-        {
-            return try expression.accept(visitor: self)
-        }
-        catch
-        {
-            fatalError("Unknown error: \(error)")
-        }
-    }
+    private func evaluate(expression: Expression) throws -> R { try expression.accept(visitor: self) }
 
 
     private static func areEqual(_ a: Any?, _ b: Any?) -> Bool { a as? NSObject == b as? NSObject }
@@ -130,4 +161,48 @@ struct Interpreter: Visitor
         return true
     }
 
+
+    private static func validateNumericOperands(operator optr: Token, operands: Any?...) throws
+    {
+        for operand in operands
+        {
+            if operand as? Double == nil
+            {
+                throw RuntimeError.ExpectedNumericOperand(operator: optr)
+            }
+        }
+    }
+
+
+    private static func stringify(_ obj: Any?) throws -> String
+    {
+        guard let obj = obj else
+        {
+            return "nil"
+        }
+
+        if let obj = obj as? Double
+        {
+            // If it's an integer remove the last 2 characters (.0)
+            if obj.truncatingRemainder(dividingBy: 1.0) == 0.0
+            {
+                return String( obj.description.dropLast(2) )
+            }
+            return obj.description
+        }
+        else if let obj = obj as? String
+        {
+            return obj
+        }
+
+        throw RuntimeError.ObjectNonConvertibleToString
+    }
+}
+
+
+enum RuntimeError: Error
+{
+    case ExpectedNumericOperand(operator: Token)
+    case MismatchingOperands(operator: Token) // TODO: pass more info about the operands
+    case ObjectNonConvertibleToString
 }
