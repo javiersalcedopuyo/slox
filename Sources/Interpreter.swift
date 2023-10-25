@@ -21,6 +21,10 @@ struct Interpreter: Visitor
             Lox.runtimeError(
                 line: optr.line,message: "❌ RUNTIME ERROR: Mismatching operands")
         }
+        catch RuntimeError.DivisionByZero(let line)
+        {
+            Lox.runtimeError(line: line, message: "❌ RUNTIME ERROR: Division by 0")
+        }
         catch
         {
             Lox.runtimeError(line: -1, message: "UNKOWN RUNTIME ERROR")
@@ -158,6 +162,16 @@ struct Interpreter: Visitor
 
     private static func validateNumericOperands(operator optr: Token, operands: Any?...) throws
     {
+        // I don't want to deal with NaNs and Infinites XD
+        if optr.type == .SLASH
+        {
+            assert(operands.count == 2)
+            if operands[1] as! Double == 0.0
+            {
+                throw RuntimeError.DivisionByZero(line: optr.line)
+            }
+        }
+
         for operand in operands
         {
             if operand as? Double == nil
@@ -198,5 +212,6 @@ enum RuntimeError: Error
 {
     case ExpectedNumericOperand(operator: Token)
     case MismatchingOperands(operator: Token) // TODO: pass more info about the operands
+    case DivisionByZero(line: Int)
     case ObjectNonConvertibleToString
 }
