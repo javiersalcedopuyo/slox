@@ -59,6 +59,26 @@ struct Scanner
             case "<": add_token(type: advance_if_peek_matches("=") ? .LESS_EQUAL    : .LESS)
             case ">": add_token(type: advance_if_peek_matches("=") ? .GREATER_EQUAL : .GREATER)
 
+            case "\"":
+                let starting_line = self.current_line
+                var string_literal: String = ""
+                while !self.is_at_end() && self.peek() != "\""
+                {
+                    guard let c = self.peek() else
+                    {
+                        Lox.error(line: self.current_line, message: "Unexpected end of file.")
+                        break
+                    }
+                    string_literal.append(c)
+                    _ = self.advance()
+                }
+
+                if !self.advance_if_peek_matches("\"")
+                {
+                    Lox.error(line: starting_line, message: "Missing closing \"")
+                }
+                add_token(type: .STRING, literal: .string(string_literal))
+
             case "/":
                 if self.advance_if_peek_matches("/") // Simple comment
                 {
