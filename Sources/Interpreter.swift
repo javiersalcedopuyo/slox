@@ -104,20 +104,14 @@ struct Interpreter: Visitor
                 return (left as! Double) * (right as! Double)
             case .PLUS:
                 if
-                    let left  = left as? Double,
+                    let left  = left  as? Double,
                     let right = right as? Double
-                {
-                    return left + right
-                }
-                else if
-                    let left  = left as? String,
-                    let right = right as? String
                 {
                     return left + right
                 }
                 else
                 {
-                    throw RuntimeError.MismatchingOperands(operator: binary.op)
+                    return try Self.stringify(left) + Self.stringify(right)
                 }
 
             default:
