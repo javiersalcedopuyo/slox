@@ -1,4 +1,4 @@
-struct ASTPrinter : Visitor
+struct ASTPrinter : ExpressionVisitor
 {
     typealias R = String
 
@@ -97,7 +97,7 @@ struct ASTPrinter : Visitor
 
 
 
-struct ASTPrinterReversePolishNotation: Visitor
+struct ASTPrinterReversePolishNotation: ExpressionVisitor
 {
     typealias R = String
 

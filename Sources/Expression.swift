@@ -1,4 +1,4 @@
-protocol Visitor
+protocol ExpressionVisitor
 {
 	associatedtype R
 
@@ -13,7 +13,7 @@ protocol Visitor
 
 protocol Expression
 {
-	func accept<R, V: Visitor>(visitor: V) throws -> R where V.R == R
+	func accept<R, V: ExpressionVisitor>(visitor: V) throws -> R where V.R == R
 }
 
 
@@ -24,7 +24,7 @@ struct Binary: Expression
 	let op: Token
 	let right: Expression
 
-	func accept<R, V: Visitor>(visitor: V) throws -> R where V.R == R { try visitor.visit(self) }
+	func accept<R, V: ExpressionVisitor>(visitor: V) throws -> R where V.R == R { try visitor.visit(self) }
 }
 
 
@@ -33,7 +33,7 @@ struct Grouping: Expression
 {
 	let expression: Expression
 
-	func accept<R, V: Visitor>(visitor: V) throws -> R where V.R == R { try visitor.visit(self) }
+	func accept<R, V: ExpressionVisitor>(visitor: V) throws -> R where V.R == R { try visitor.visit(self) }
 }
 
 
@@ -42,7 +42,7 @@ struct LiteralExp: Expression
 {
 	let value: Literal?
 
-	func accept<R, V: Visitor>(visitor: V) throws -> R where V.R == R { try visitor.visit(self) }
+	func accept<R, V: ExpressionVisitor>(visitor: V) throws -> R where V.R == R { try visitor.visit(self) }
 }
 
 
@@ -52,16 +52,16 @@ struct Unary: Expression
 	let op: Token
 	let right: Expression
 
-	func accept<R, V: Visitor>(visitor: V) throws -> R where V.R == R { try visitor.visit(self) }
+	func accept<R, V: ExpressionVisitor>(visitor: V) throws -> R where V.R == R { try visitor.visit(self) }
 }
 
 
 
 struct Ternary: Expression
 {
-	let condition: 		Expression
-	let then_branch: 	Expression
-	let else_branch: 	Expression
+	let condition: Expression
+	let then_branch: Expression
+	let else_branch: Expression
 
-	func accept<R, V: Visitor>(visitor: V) throws -> R where V.R == R { try visitor.visit(self) }
+	func accept<R, V: ExpressionVisitor>(visitor: V) throws -> R where V.R == R { try visitor.visit(self) }
 }

@@ -1,6 +1,6 @@
 import Foundation
 
-struct Interpreter: Visitor
+struct Interpreter: ExpressionVisitor
 {
     typealias R = Any?
 

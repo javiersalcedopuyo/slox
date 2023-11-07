@@ -18,7 +18,8 @@ struct ASTGenerator
             "Binary: Expression left, Token op, Expression right",
             "Grouping: Expression expression",
             "LiteralExp: Literal? value",
-            "Unary: Token op, Expression right"
+            "Unary: Token op, Expression right",
+            "Ternary: Expression condition, Expression then_branch, Expression else_branch"
         ]
 
         do
@@ -27,6 +28,13 @@ struct ASTGenerator
                 output_directory: output_dir,
                 base_name: "Expression",
                 types: types)
+
+            try define_AST(
+                output_directory: output_dir,
+                base_name: "Statement",
+                types: [
+                    "ExpressionStatement: Expression expression",
+                    "Print: Expression expression"])
         }
         catch
         {
@@ -54,7 +62,7 @@ throws
 
     output += "protocol " + base_name + "\n"
     output += "{\n"
-    output += "\tfunc accept<R, V: Visitor>(visitor: V) -> R where V.R == R\n"
+    output += "\tfunc accept<R, V: \(base_name)Visitor>(visitor: V) throws -> R where V.R == R\n"
     output += "}\n"
 
     for type in types
@@ -73,7 +81,7 @@ throws
 
 func define_visitor(base_name: String, types: [String]) -> String
 {
-    var output = "protocol Visitor\n"
+    var output = "protocol \(base_name)Visitor\n"
     output += "{\n"
     output += "\tassociatedtype R\n\n"
 
@@ -85,7 +93,7 @@ func define_visitor(base_name: String, types: [String]) -> String
 
         output += "\tfunc visit(_ "
         output += type_name.lowercased() + ": " + type_name
-        output += ") -> R\n"
+        output += ") throws -> R\n"
     }
 
     output += "}\n"
@@ -125,7 +133,7 @@ func parse_sub_type(base_name: String, descriptor: String) -> String
     }
 
     output += "\n"
-    output += "\tfunc accept<R, V: Visitor>(visitor: V) -> R where V.R == R { visitor.visit(self) }\n"
+    output += "\tfunc accept<R, V: \(base_name)Visitor>(visitor: V) throws -> R where V.R == R { try visitor.visit(self) }\n"
 
     output += "}\n"
     return output
