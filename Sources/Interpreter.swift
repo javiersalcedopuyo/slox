@@ -1,16 +1,18 @@
 import Foundation
 
-struct Interpreter: ExpressionVisitor
+struct Interpreter: ExpressionVisitor, StatementVisitor
 {
     typealias R = Any?
 
     // - MARK: Public
-    public func interpret(expression: Expression)
+    public func interpret(statements: [Statement])
     {
         do
         {
-            let value = try self.evaluate(expression: expression)
-            print( try Self.stringify(value) )
+            for statement in statements
+            {
+                try self.execute(statement: statement)
+            }
         }
         catch RuntimeError.ExpectedNumericOperand(let optr)
         {
@@ -138,8 +140,24 @@ struct Interpreter: ExpressionVisitor
     }
 
 
+    public func visit(_ statement: ExpressionStatement) throws -> R
+    {
+        _ = try self.evaluate(expression: statement.expression)
+        return nil
+    }
+
+
+    public func visit(_ statement: Print) throws -> R
+    {
+        let value = try self.evaluate(expression: statement.expression)
+        print( try Self.stringify(value) )
+        return nil
+    }
+
+
     // - MARK: Private
     private func evaluate(expression: Expression) throws -> R { try expression.accept(visitor: self) }
+    private func execute(statement: Statement) throws { try _ = statement.accept(visitor: self) }
 
 
     private static func areEqual(_ a: Any?, _ b: Any?) -> Bool { a as? NSObject == b as? NSObject }

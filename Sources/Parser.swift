@@ -1,4 +1,8 @@
 // GRAMMAR: ////////////////////////////////////////////////////////////////////////////////////////
+// program      -> statement* EOF ;
+// statement    -> exprStmt | printStmt ;
+// exprStmt     -> expression ";" ;
+// printStmt    -> "print" expression ";" ;
 // expression   -> ternary ;
 // ternary      -> equality ( "?" ternary ":" ternary )?
 // equality     -> comparison ( ( "!=" | "==" ) comparision )* ;
@@ -22,11 +26,15 @@ struct Parser
     }
 
 
-    public mutating func parse() -> Expression?
+    public mutating func parse() -> [Statement]
     {
+        var statements: [Statement] = []
         do
         {
-            return try self.expression()
+            while !self.is_at_end()
+            {
+                try statements.append( self.statement() )
+            }
         }
         catch ParserError.ExpectedExpression(let token)
         {
@@ -50,7 +58,7 @@ struct Parser
             Lox.error(line: -1, message: "Unkown parsing error.")
         }
 
-        return nil
+        return statements
     }
 
 
@@ -58,6 +66,31 @@ struct Parser
     private let tokens: [Token]
     private var current_token_idx = 0
 
+
+    private mutating func statement() throws -> Statement
+    {
+        if self.match_and_advance(tokens: .PRINT)
+        {
+            return try self.printStatement()
+        }
+        return try self.expressionStatement()
+    }
+
+
+    private mutating func printStatement() throws -> Print
+    {
+        let value = try self.expression()
+        try _ = self.consume(token_type: .SEMICOLON, message: "Expected `;` after value.")
+        return Print(expression: value)
+    }
+
+
+    private mutating func expressionStatement() throws -> ExpressionStatement
+    {
+        let expr = try self.expression()
+        try _ = self.consume(token_type: .SEMICOLON, message: "Expected `;` after expression.")
+        return ExpressionStatement(expression: expr)
+    }
 
     private mutating func expression() throws -> Expression { try self.ternary() }
 

@@ -88,14 +88,14 @@ class Lox
         var scanner     = Scanner(source: source)
         let tokens      = scanner.scan_tokens()
         var parser      = Parser(tokens: tokens)
-        let expression  = parser.parse()
+        let statements  = parser.parse()
 
-        if Self.had_error == true || expression == nil
+        if Self.had_error == true || statements.count == 0
         {
             return;
         }
 
-        Self.interpreter.interpret(expression: expression!)
+        Self.interpreter.interpret(statements: statements)
     }
 
 
