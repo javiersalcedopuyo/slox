@@ -1,5 +1,7 @@
 // GRAMMAR: ////////////////////////////////////////////////////////////////////////////////////////
 // program      -> statement* EOF ;
+// declaration  -> varDecl | statement ;
+// varDecl      -> "var" IDENTIFIER ( "=" expression )? ";" ;
 // statement    -> exprStmt | printStmt ;
 // exprStmt     -> expression ";" ;
 // printStmt    -> "print" expression ";" ;
@@ -10,7 +12,10 @@
 // term         -> factor ( ( "-" | "+" ) factor )* ;
 // factor       -> unary ( ( "/" | "*" ) unary )* ;
 // unary        -> ( "!" | "-" ) unary | primary ;
-// primary      -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")"
+// primary      -> NUMBER | STRING
+//                  | "true" | "false" | "nil"
+//                  | "(" expression ")"
+//                  | IDENTIFIER
 //                  // Error productions
 //                  | ( "!=" | "==" ) equality
 //                  | ( ">" | ">=" | "<" | "<=" ) comparison
@@ -29,12 +34,31 @@ struct Parser
     public mutating func parse() -> [Statement]
     {
         var statements: [Statement] = []
+        while !self.is_at_end()
+        {
+            if let decl = self.declaration()
+            {
+                statements.append(decl)
+            }
+        }
+        return statements
+    }
+
+
+    // - MARK: Private
+    private let tokens: [Token]
+    private var current_token_idx = 0
+
+
+    private mutating func declaration() -> Statement?
+    {
         do
         {
-            while !self.is_at_end()
+            if self.match_and_advance(tokens: .VAR)
             {
-                try statements.append( self.statement() )
+                return try self.varDeclaration()
             }
+            return try self.statement()
         }
         catch ParserError.ExpectedExpression(let token)
         {
@@ -58,13 +82,23 @@ struct Parser
             Lox.error(line: -1, message: "Unkown parsing error.")
         }
 
-        return statements
+        self.sync()
+        return nil
     }
 
 
-    // - MARK: Private
-    private let tokens: [Token]
-    private var current_token_idx = 0
+    private mutating func varDeclaration() throws -> Statement
+    {
+        let name = try self.consume(token_type: .IDENTIFIER, message: "Expected variable name.")
+
+        let initializer = self.match_and_advance(tokens: .EQUAL)
+            ? try self.expression()
+            : nil
+
+        _ = try self.consume(token_type: .SEMICOLON, message: "Expected `;` after declaration.")
+
+        return VarStatement(name: name, initializer: initializer)
+    }
 
 
     private mutating func statement() throws -> Statement
@@ -192,6 +226,11 @@ struct Parser
         if match_and_advance(tokens: .NUMBER, .STRING)
         {
             return LiteralExp(value: self.previous().literal )
+        }
+
+        if match_and_advance(tokens: .IDENTIFIER)
+        {
+            return Variable(name: self.previous())
         }
 
         if match_and_advance(tokens: .LEFT_PARENTHESIS)

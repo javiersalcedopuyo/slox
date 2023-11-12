@@ -7,6 +7,7 @@ protocol ExpressionVisitor
 	func visit(_ literalexp: LiteralExp) throws -> R
 	func visit(_ unary: Unary) throws -> R
 	func visit(_ ternary: Ternary) throws -> R
+	func visit(_ variable: Variable) throws -> R
 }
 
 
@@ -62,6 +63,15 @@ struct Ternary: Expression
 	let condition: Expression
 	let then_branch: Expression
 	let else_branch: Expression
+
+	func accept<R, V: ExpressionVisitor>(visitor: V) throws -> R where V.R == R { try visitor.visit(self) }
+}
+
+
+
+struct Variable: Expression
+{
+	let name: Token
 
 	func accept<R, V: ExpressionVisitor>(visitor: V) throws -> R where V.R == R { try visitor.visit(self) }
 }

@@ -19,7 +19,8 @@ struct ASTGenerator
             "Grouping: Expression expression",
             "LiteralExp: Literal? value",
             "Unary: Token op, Expression right",
-            "Ternary: Expression condition, Expression then_branch, Expression else_branch"
+            "Ternary: Expression condition, Expression then_branch, Expression else_branch",
+            "Variable: Token name"
         ]
 
         do
@@ -34,7 +35,8 @@ struct ASTGenerator
                 base_name: "Statement",
                 types: [
                     "ExpressionStatement: Expression expression",
-                    "Print: Expression expression"])
+                    "Print: Expression expression",
+                    "VarStatement: Token name, Expression? initializer"])
         }
         catch
         {
@@ -91,9 +93,10 @@ func define_visitor(base_name: String, types: [String]) -> String
             .split(separator: ":")[0]
             .trimmingCharacters(in: .whitespaces)
 
-        output += "\tfunc visit(_ "
-        output += type_name.lowercased() + ": " + type_name
-        output += ") throws -> R\n"
+        // TODO: Do this in a more elegant way
+        let mutates = type_name == "VarStatement" ? "mutating " : ""
+
+        output += "\t\(mutates)func visit(_ \(type_name.lowercased()): \(type_name)) throws -> R\n"
     }
 
     output += "}\n"

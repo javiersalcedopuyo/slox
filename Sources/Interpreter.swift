@@ -5,7 +5,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     typealias R = Any?
 
     // - MARK: Public
-    public func interpret(statements: [Statement])
+    mutating public func interpret(statements: [Statement])
     {
         do
         {
@@ -26,6 +26,12 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
         catch RuntimeError.DivisionByZero(let line)
         {
             Lox.runtimeError(line: line, message: "❌ RUNTIME ERROR: Division by 0")
+        }
+        catch RuntimeError.UndefinedVariable(let variable)
+        {
+            Lox.runtimeError(
+                line: variable.line,
+                message: "❌ RUNTIME ERROR: Undefined variable `\(variable.lexeme)`.")
         }
         catch
         {
@@ -155,9 +161,28 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
+    public mutating func visit(_ variable: VarStatement) throws -> R
+    {
+        var value = Optional<Any>.none // So the dictionary in `Environment` still considers it a valid entry
+        if let initializer = variable.initializer
+        {
+            value = try self.evaluate(expression: initializer)
+        }
+
+        self.environment.define(name: variable.name.lexeme, value: value)
+        return nil
+    }
+
+
+    public func visit(_ variable: Variable) throws -> R
+    {
+        try self.environment.get(name: variable.name)
+    }
+
+
     // - MARK: Private
     private func evaluate(expression: Expression) throws -> R { try expression.accept(visitor: self) }
-    private func execute(statement: Statement) throws { try _ = statement.accept(visitor: self) }
+    mutating private func execute(statement: Statement) throws { try _ = statement.accept(visitor: &self) }
 
 
     private static func areEqual(_ a: Any?, _ b: Any?) -> Bool { a as? NSObject == b as? NSObject }
@@ -223,6 +248,9 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
 
         throw RuntimeError.ObjectNonConvertibleToString
     }
+
+
+    private var environment = Environment()
 }
 
 
@@ -232,4 +260,5 @@ enum RuntimeError: Error
     case MismatchingOperands(operator: Token) // TODO: pass more info about the operands
     case DivisionByZero(line: Int)
     case ObjectNonConvertibleToString
+    case UndefinedVariable(variable: Token)
 }
