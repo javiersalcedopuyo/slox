@@ -40,6 +40,13 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
+    public mutating func visit(_ assignment: Assignment) throws -> R
+    {
+        let value = try self.evaluate(expression: assignment.value)
+        try self.environment.assign(name: assignment.name, value: value)
+        return value
+    }
+
 
 	public mutating func visit(_ literalexp: LiteralExp) -> R
     {

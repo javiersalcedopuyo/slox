@@ -2,6 +2,7 @@ protocol ExpressionVisitor
 {
 	associatedtype R
 
+	mutating func visit(_ assignment: Assignment) throws -> R
 	mutating func visit(_ binary: Binary) throws -> R
 	mutating func visit(_ grouping: Grouping) throws -> R
 	mutating func visit(_ literalexp: LiteralExp) throws -> R
@@ -15,6 +16,16 @@ protocol ExpressionVisitor
 protocol Expression
 {
 	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R
+}
+
+
+
+struct Assignment: Expression
+{
+	let name: Token
+	let value: Expression
+
+	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
 }
 
 

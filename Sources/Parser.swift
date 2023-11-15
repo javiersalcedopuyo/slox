@@ -5,7 +5,9 @@
 // statement    -> exprStmt | printStmt ;
 // exprStmt     -> expression ";" ;
 // printStmt    -> "print" expression ";" ;
-// expression   -> ternary ;
+// expression   -> assignment ;
+// assignment   -> IDENTIFIER "=" assignment
+//                  | ternary ;
 // ternary      -> equality ( "?" ternary ":" ternary )?
 // equality     -> comparison ( ( "!=" | "==" ) comparision )* ;
 // comparison   -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -77,6 +79,11 @@ struct Parser
                 line: token.line,
                 message: "Missing left-hand operand of operator `\(token.lexeme)`")
         }
+        catch ParserError.InvalidAssignmentTarget(let line)
+        {
+            Lox.error(line: line, message: "Invalid assignment target.")
+            return nil // There's no need to synchronize on this error
+        }
         catch
         {
             Lox.error(line: -1, message: "Unkown parsing error.")
@@ -126,7 +133,24 @@ struct Parser
         return ExpressionStatement(expression: expr)
     }
 
-    private mutating func expression() throws -> Expression { try self.ternary() }
+    private mutating func expression() throws -> Expression { try self.assignment() }
+
+
+    private mutating func assignment() throws -> Expression
+    {
+        let expression = try self.ternary()
+
+        if self.match_and_advance(tokens: .EQUAL)
+        {
+            guard let expr = expression as? Variable else
+            {
+                throw ParserError.InvalidAssignmentTarget(line: self.previous().line)
+            }
+            return Assignment(name: expr.name, value: try self.assignment())
+        }
+
+        return expression
+    }
 
 
     private mutating func ternary() throws -> Expression
@@ -388,4 +412,5 @@ enum ParserError : Error
     case InvalidToken(token: Token, message: String)
     case ExpectedExpression(token: Token)
     case MissingLeftOperand(token: Token) // TODO: Include the expression for better error message
+    case InvalidAssignmentTarget(line: Int)
 }

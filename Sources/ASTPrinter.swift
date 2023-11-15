@@ -84,6 +84,17 @@ struct ASTPrinter : ExpressionVisitor
 
 
 
+    /// "Prettyfies" an `Assignment` expression
+    /// - Parameter assignment: The expression to transform
+    /// - Returns: The "prettyfied" expression
+    public func visit(_ assignment: Assignment) -> String
+    {
+        // TODO:
+        assignment.name.lexeme
+    }
+
+
+
     /// Prints expressions wrapping grouping and nesting in parenthesis
     /// - Parameters:
     ///   - name:
@@ -187,6 +198,17 @@ struct ASTPrinterReversePolishNotation: ExpressionVisitor
     /// - Parameter variable: The expression to transform
     /// - Returns: The "prettyfied" expression
     public mutating func visit(_ variable: Variable) -> String { variable.name.lexeme }
+
+
+
+    /// "Prettyfies" an `Assignment` expression
+    /// - Parameter assignment: The expression to transform
+    /// - Returns: The "prettyfied" expression
+    public func visit(_ assignment: Assignment) -> String
+    {
+        // TODO:
+        assignment.name.lexeme
+    }
 
 
 
