@@ -41,7 +41,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
 
 
 
-	public func visit(_ literalexp: LiteralExp) -> R
+	public mutating func visit(_ literalexp: LiteralExp) -> R
     {
         assert( literalexp.value != nil )
         switch literalexp.value
@@ -54,13 +54,13 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-	public func visit(_ grouping: Grouping) throws -> R
+	public mutating func visit(_ grouping: Grouping) throws -> R
     {
         try self.evaluate(expression: grouping.expression)
     }
 
 
-	public func visit(_ unary: Unary) throws -> R
+	public mutating func visit(_ unary: Unary) throws -> R
     {
         let right = try self.evaluate(expression: unary.right)
 
@@ -77,7 +77,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-	public func visit(_ binary: Binary) throws -> R
+	public mutating func visit(_ binary: Binary) throws -> R
     {
         let left  = try self.evaluate(expression: binary.left)
         let right = try self.evaluate(expression: binary.right)
@@ -132,7 +132,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-	public func visit(_ ternary: Ternary) throws -> R
+	public mutating func visit(_ ternary: Ternary) throws -> R
     {
         let condition = try self.evaluate(expression: ternary.condition)
         if Self.isTruthful(condition)
@@ -146,14 +146,14 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    public func visit(_ statement: ExpressionStatement) throws -> R
+    public mutating func visit(_ statement: ExpressionStatement) throws -> R
     {
         _ = try self.evaluate(expression: statement.expression)
         return nil
     }
 
 
-    public func visit(_ statement: Print) throws -> R
+    public mutating func visit(_ statement: Print) throws -> R
     {
         let value = try self.evaluate(expression: statement.expression)
         print( try Self.stringify(value) )
@@ -174,14 +174,14 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    public func visit(_ variable: Variable) throws -> R
+    public mutating func visit(_ variable: Variable) throws -> R
     {
         try self.environment.get(name: variable.name)
     }
 
 
     // - MARK: Private
-    private func evaluate(expression: Expression) throws -> R { try expression.accept(visitor: self) }
+    mutating private func evaluate(expression: Expression) throws -> R { try expression.accept(visitor: &self) }
     mutating private func execute(statement: Statement) throws { try _ = statement.accept(visitor: &self) }
 
 

@@ -64,7 +64,7 @@ throws
 
     output += "protocol " + base_name + "\n"
     output += "{\n"
-    output += "\tfunc accept<R, V: \(base_name)Visitor>(visitor: V) throws -> R where V.R == R\n"
+    output += "\tfunc accept<R, V: \(base_name)Visitor>(visitor: inout V) throws -> R where V.R == R\n"
     output += "}\n"
 
     for type in types
@@ -93,10 +93,7 @@ func define_visitor(base_name: String, types: [String]) -> String
             .split(separator: ":")[0]
             .trimmingCharacters(in: .whitespaces)
 
-        // TODO: Do this in a more elegant way
-        let mutates = type_name == "VarStatement" ? "mutating " : ""
-
-        output += "\t\(mutates)func visit(_ \(type_name.lowercased()): \(type_name)) throws -> R\n"
+        output += "\tmutating func visit(_ \(type_name.lowercased()): \(type_name)) throws -> R\n"
     }
 
     output += "}\n"
@@ -136,7 +133,7 @@ func parse_sub_type(base_name: String, descriptor: String) -> String
     }
 
     output += "\n"
-    output += "\tfunc accept<R, V: \(base_name)Visitor>(visitor: V) throws -> R where V.R == R { try visitor.visit(self) }\n"
+    output += "\tfunc accept<R, V: \(base_name)Visitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }\n"
 
     output += "}\n"
     return output
