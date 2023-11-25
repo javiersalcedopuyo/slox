@@ -2,7 +2,8 @@
 // program      -> statement* EOF ;
 // declaration  -> varDecl | statement ;
 // varDecl      -> "var" IDENTIFIER ( "=" expression )? ";" ;
-// statement    -> exprStmt | printStmt ;
+// statement    -> exprStmt | printStmt | block;
+// block        -> "{" declaration "}"
 // exprStmt     -> expression ";" ;
 // printStmt    -> "print" expression ";" ;
 // expression   -> assignment ;
@@ -114,6 +115,10 @@ struct Parser
         {
             return try self.printStatement()
         }
+        if self.match_and_advance(tokens: .LEFT_BRACE)
+        {
+            return Block(statements: try self.blockStatement())
+        }
         return try self.expressionStatement()
     }
 
@@ -123,6 +128,22 @@ struct Parser
         let value = try self.expression()
         try _ = self.consume(token_type: .SEMICOLON, message: "Expected `;` after value.")
         return Print(expression: value)
+    }
+
+
+    private mutating func blockStatement() throws -> [Statement]
+    {
+        var statements: [Statement] = []
+
+        while !self.check_current_token(of_type: .RIGHT_BRACE) && !self.is_at_end()
+        {
+            if let decl = self.declaration()
+            {
+                statements.append(decl)
+            }
+        }
+        try _ = self.consume(token_type: .RIGHT_BRACE, message: "Expected `}` after block.")
+        return statements
     }
 
 

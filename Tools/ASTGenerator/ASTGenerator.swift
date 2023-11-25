@@ -35,6 +35,7 @@ struct ASTGenerator
                 output_directory: output_dir,
                 base_name: "Statement",
                 types: [
+                    "Block: [Statement] statements",
                     "ExpressionStatement: Expression expression",
                     "Print: Expression expression",
                     "VarStatement: Token name, Expression? initializer"])

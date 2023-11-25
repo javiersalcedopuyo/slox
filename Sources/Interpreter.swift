@@ -181,6 +181,14 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
+    public mutating func visit(_ block: Block) throws -> R
+    {
+        try self.execute(
+            block: block,
+            environment: Environment(in_scope: self.environment))
+    }
+
+
     public mutating func visit(_ variable: Variable) throws -> R
     {
         try self.environment.get(name: variable.name)
@@ -189,6 +197,21 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
 
     // - MARK: Private
     mutating private func evaluate(expression: Expression) throws -> R { try expression.accept(visitor: &self) }
+
+
+    mutating private func execute(block: Block, environment scope: Environment) throws
+    {
+        let previous_environment = self.environment
+        defer { self.environment = previous_environment }
+
+        self.environment = scope
+        for statement in block.statements
+        {
+            try self.execute(statement: statement)
+        }
+    }
+
+
     mutating private func execute(statement: Statement) throws { try _ = statement.accept(visitor: &self) }
 
 
