@@ -5,12 +5,19 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     typealias R = Any?
 
     // - MARK: Public
-    mutating public func interpret(statements: [Statement])
+    mutating public func interpret(statements: [Statement], repl_mode: Bool)
     {
         do
         {
-            for statement in statements
+            for var statement in statements
             {
+                if repl_mode
+                {
+                    if let expr = statement as? ExpressionStatement
+                    {
+                        statement = Print(expression: expr.expression)
+                    }
+                }
                 try self.execute(statement: statement)
             }
         }

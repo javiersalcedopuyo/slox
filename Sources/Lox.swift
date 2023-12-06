@@ -50,7 +50,7 @@ class Lox
                 break
             }
 
-            self.run(source: line)
+            self.run(source: line, repl_mode: true)
             Self.had_error = false
 
             print("---")
@@ -69,7 +69,7 @@ class Lox
             fatalError("Failed to read file \(file_name)")
         }
 
-        self.run(source: file_contents)
+        self.run(source: file_contents, repl_mode: false)
 
         if Self.had_error
         {
@@ -83,7 +83,7 @@ class Lox
 
 
 
-    private func run(source: String)
+    private func run(source: String, repl_mode: Bool)
     {
         var scanner     = Scanner(source: source)
         let tokens      = scanner.scan_tokens()
@@ -95,7 +95,7 @@ class Lox
             return;
         }
 
-        Self.interpreter.interpret(statements: statements)
+        Self.interpreter.interpret(statements: statements, repl_mode: repl_mode)
     }
 
 

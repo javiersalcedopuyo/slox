@@ -20,6 +20,7 @@ protocol Expression
 
 
 
+// TODO: Make assignment a Statement instead, like on Swift or Rust
 struct Assignment: Expression
 {
 	let name: Token
