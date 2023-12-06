@@ -30,7 +30,7 @@ class Environment
                 try self.enclosing_scope!.assign(name: name, value: value)
                 return
             }
-            throw RuntimeError.UndefinedVariable(variable: name)
+            throw RuntimeError.UndeclaredVariable(variable: name)
         }
 
         self.values[name.lexeme] = value
@@ -39,16 +39,22 @@ class Environment
 
     public func get(name: Token) throws -> Any?
     {
-        guard let value = self.values[name.lexeme] else
+        guard let optional_value = self.values[name.lexeme] else
         {
-            // See if the variable is defined in an outer scope
+            // See if the variable is declared in an outer scope
             if self.enclosing_scope != nil
             {
                 return try self.enclosing_scope!.get(name: name)
             }
+            throw RuntimeError.UndeclaredVariable(variable: name)
+        }
+        guard let value = optional_value else
+        {
+            // The variable is declared at this scope but left undefined
             throw RuntimeError.UndefinedVariable(variable: name)
         }
-        return value as Any?
+
+        return value
     }
 
 

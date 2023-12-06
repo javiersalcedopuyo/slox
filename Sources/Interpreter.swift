@@ -34,6 +34,12 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
         {
             Lox.runtimeError(line: line, message: "❌ RUNTIME ERROR: Division by 0")
         }
+        catch RuntimeError.UndeclaredVariable(let variable)
+        {
+            Lox.runtimeError(
+                line: variable.line,
+                message: "❌ RUNTIME ERROR: Undeclared variable `\(variable.lexeme)`.")
+        }
         catch RuntimeError.UndefinedVariable(let variable)
         {
             Lox.runtimeError(
@@ -42,7 +48,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
         }
         catch
         {
-            Lox.runtimeError(line: -1, message: "UNKOWN RUNTIME ERROR")
+            Lox.runtimeError(line: -1, message: "? UNKOWN RUNTIME ERROR")
         }
     }
 
@@ -297,5 +303,6 @@ enum RuntimeError: Error
     case MismatchingOperands(operator: Token) // TODO: pass more info about the operands
     case DivisionByZero(line: Int)
     case ObjectNonConvertibleToString
+    case UndeclaredVariable(variable: Token)
     case UndefinedVariable(variable: Token)
 }
