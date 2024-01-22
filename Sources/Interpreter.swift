@@ -202,6 +202,20 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
+    public mutating func visit(_ conditionalstatement: ConditionalStatement) throws -> R
+    {
+        if Self.isTruthful( try self.evaluate(expression: conditionalstatement.condition) )
+        {
+            try self.execute(statement: conditionalstatement.then_branch)
+        }
+        else if let else_branch = conditionalstatement.else_branch
+        {
+            try self.execute(statement: else_branch)
+        }
+        return nil
+    }
+
+
     public mutating func visit(_ variable: Variable) throws -> R
     {
         try self.environment.get(name: variable.name)

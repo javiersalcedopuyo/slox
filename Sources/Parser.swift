@@ -2,10 +2,11 @@
 // program      -> statement* EOF ;
 // declaration  -> varDecl | statement ;
 // varDecl      -> "var" IDENTIFIER ( "=" expression )? ";" ;
-// statement    -> exprStmt | printStmt | block;
+// statement    -> exprStmt | printStmt | ifStmt | block;
 // block        -> "{" declaration "}"
 // exprStmt     -> expression ";" ;
 // printStmt    -> "print" expression ";" ;
+// ifStmt       -> "if" "(" expression ")" statement ( "else" statement )?;
 // expression   -> assignment ;
 // assignment   -> IDENTIFIER "=" assignment
 //                  | ternary ;
@@ -119,6 +120,10 @@ struct Parser
         {
             return Block(statements: try self.blockStatement())
         }
+        if self.match_and_advance(tokens: .IF)
+        {
+            return try self.conditionalStatement()
+        }
         return try self.expressionStatement()
     }
 
@@ -144,6 +149,26 @@ struct Parser
         }
         try _ = self.consume(token_type: .RIGHT_BRACE, message: "Expected `}` after block.")
         return statements
+    }
+
+
+    private mutating func conditionalStatement() throws -> Statement
+    {
+        try _ = self.consume(token_type: .LEFT_PARENTHESIS, message: "Expected `(` after if.")
+        let condition = try self.expression()
+        try _ = self.consume(token_type: .RIGHT_PARENTHESIS, message: "Expected `)` after if condition.")
+        let then_branch = try self.statement()
+
+        var else_branch: Statement? = nil
+        if self.match_and_advance(tokens: .ELSE)
+        {
+            else_branch = try self.statement()
+        }
+
+        return ConditionalStatement(
+            condition: condition,
+            then_branch: then_branch,
+            else_branch: else_branch)
     }
 
 
