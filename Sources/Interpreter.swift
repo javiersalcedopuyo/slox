@@ -173,6 +173,40 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
+    public mutating func visit(_ logical: Logical) throws -> Any?
+    {
+        let left = try self.evaluate(expression: logical.left)
+        let is_left_true = Self.isTruthful(left)
+
+        if logical.op.type == .OR
+        {
+            if is_left_true
+            {
+                return true
+            }
+        }
+        else
+        {
+            if !is_left_true
+            {
+                return false
+            }
+        }
+
+        let right = try self.evaluate(expression: logical.right)
+        let is_right_true = Self.isTruthful(right)
+
+        if logical.op.type == .OR
+        {
+            return is_right_true
+        }
+        else
+        {
+            return is_left_true && is_right_true
+        }
+    }
+
+
     public mutating func visit(_ statement: ExpressionStatement) throws -> R
     {
         _ = try self.evaluate(expression: statement.expression)
@@ -308,6 +342,10 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
         else if let obj = obj as? String
         {
             return obj
+        }
+        else if let obj = obj as? Bool
+        {
+            return obj ? "true" : "false"
         }
 
         throw RuntimeError.ObjectNonConvertibleToString

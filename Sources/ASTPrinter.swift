@@ -77,6 +77,20 @@ struct ASTPrinter : ExpressionVisitor
 
 
 
+    /// "Prettyfies" a `Logical` expression
+    /// - Parameter logical: The expression to transform
+    /// - Returns: The "prettyfied" expression
+    public mutating func visit(_ logical: Logical) throws -> String
+    {
+        try parenthesize(
+            name: logical.op.lexeme,
+            expressions:
+                logical.left,
+                logical.right)
+    }
+
+
+
     /// "Prettyfies" a `Variable` expression
     /// - Parameter variable: The expression to transform
     /// - Returns: The "prettyfied" expression
@@ -190,6 +204,19 @@ struct ASTPrinterReversePolishNotation: ExpressionVisitor
                 ternary.condition,
                 ternary.then_branch,
                 ternary.else_branch)
+    }
+
+
+    /// "Prettyfies" a `Logical` expression
+    /// - Parameter logical: The expression to transform
+    /// - Returns: The "prettyfied" expression
+    public mutating func visit(_ logical: Logical) throws -> String
+    {
+        try convert_to_RPN(
+            name: logical.op.lexeme,
+            expressions:
+                logical.left,
+                logical.right)
     }
 
 

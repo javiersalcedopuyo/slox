@@ -10,7 +10,9 @@
 // expression   -> assignment ;
 // assignment   -> IDENTIFIER "=" assignment
 //                  | ternary ;
-// ternary      -> equality ( "?" ternary ":" ternary )?
+// ternary      -> logic_or ( "?" ternary ":" ternary )?
+// logic_or     -> logic_and ( "or" logic_and)*;
+// logic_and    -> equality ( "and" equality)*;
 // equality     -> comparison ( ( "!=" | "==" ) comparision )* ;
 // comparison   -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 // term         -> factor ( ( "-" | "+" ) factor )* ;
@@ -201,7 +203,7 @@ struct Parser
 
     private mutating func ternary() throws -> Expression
     {
-        var expression = try self.equality()
+        var expression = try self.or_operator()
         if match_and_advance(tokens: .QUESTION_MARK )
         {
             let then_branch = try self.ternary()
@@ -212,6 +214,33 @@ struct Parser
                 condition: expression,
                 then_branch: then_branch,
                 else_branch: else_branch)
+        }
+        return expression
+    }
+
+
+    private mutating func or_operator() throws -> Expression
+    {
+        var expression = try self.and_operator()
+
+        while self.match_and_advance(tokens: .OR)
+        {
+            let op = self.previous()
+            let right = try self.and_operator()
+            expression = Logical(left: expression, op: op, right: right)
+        }
+        return expression
+    }
+
+
+    private mutating func and_operator() throws -> Expression
+    {
+        var expression = try self.equality()
+        while self.match_and_advance(tokens: .AND)
+        {
+            let op = self.previous()
+            let right = try self.equality()
+            expression = Logical(left: expression, op: op, right: right)
         }
         return expression
     }

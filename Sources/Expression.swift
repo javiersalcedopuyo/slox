@@ -6,6 +6,7 @@ protocol ExpressionVisitor
 	mutating func visit(_ binary: Binary) throws -> R
 	mutating func visit(_ grouping: Grouping) throws -> R
 	mutating func visit(_ literalexp: LiteralExp) throws -> R
+	mutating func visit(_ logical: Logical) throws -> R
 	mutating func visit(_ unary: Unary) throws -> R
 	mutating func visit(_ ternary: Ternary) throws -> R
 	mutating func visit(_ variable: Variable) throws -> R
@@ -54,6 +55,17 @@ struct Grouping: Expression
 struct LiteralExp: Expression
 {
 	let value: Literal?
+
+	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+}
+
+
+
+struct Logical: Expression
+{
+	let left: Expression
+	let op: Token
+	let right: Expression
 
 	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
 }
