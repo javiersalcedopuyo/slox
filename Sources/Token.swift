@@ -74,6 +74,7 @@ enum Literal
 {
     case string(String)
     case identifier(String)
+    case keyword(String)
     case number(Double)
 
     public func to_string() -> String
@@ -82,6 +83,7 @@ enum Literal
         {
             case .string(let s):        return s
             case .identifier(let s):    return s
+            case .keyword(let s):       return s
             case .number(let n):        return String(n)
         }
     }

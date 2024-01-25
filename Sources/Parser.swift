@@ -289,9 +289,9 @@ struct Parser
 
     private mutating func primary() throws -> Expression
     {
-        if match_and_advance(tokens: .FALSE)    { return LiteralExp(value: .string("false")) }
-        if match_and_advance(tokens: .TRUE)     { return LiteralExp(value: .string("true")) }
-        if match_and_advance(tokens: .NIL)      { return LiteralExp(value: .string("nil")) }
+        if match_and_advance(tokens: .FALSE)    { return LiteralExp(value: .keyword("false")) }
+        if match_and_advance(tokens: .TRUE)     { return LiteralExp(value: .keyword("true")) }
+        if match_and_advance(tokens: .NIL)      { return LiteralExp(value: .keyword("nil")) }
 
         if match_and_advance(tokens: .NUMBER, .STRING)
         {

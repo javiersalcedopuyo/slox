@@ -69,6 +69,13 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
             case .number(let n): return n
             case .string(let s): return s
             case .identifier(let i): return i // TODO:
+            case .keyword(let k):
+                switch k
+                {
+                    case "false": return false
+                    case "true": return true
+                    default: return nil
+                }
             case .none: return nil
         }
     }
