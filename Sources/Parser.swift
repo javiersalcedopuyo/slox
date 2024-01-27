@@ -3,6 +3,11 @@
 // declaration  -> varDecl | statement ;
 // varDecl      -> "var" IDENTIFIER ( "=" expression )? ";" ;
 // whileStmt    -> "while" "("expression")" statement;
+// forStmt      -> "for" "("
+//                      (varDecl | exprStmt) ";"
+//                      expression? ";"
+//                      expression? ")"
+//                  statement;
 // statement    -> exprStmt | printStmt | ifStmt | block;
 // block        -> "{" declaration "}"
 // exprStmt     -> expression ";" ;
@@ -131,6 +136,10 @@ struct Parser
         {
             return try self.whileStatement()
         }
+        if self.match_and_advance(tokens: .FOR)
+        {
+            return try self.forStatement()
+        }
         return try self.expressionStatement()
     }
 
@@ -187,6 +196,59 @@ struct Parser
         let body = try self.statement()
 
         return WhileStatement(condition: condition, body: body)
+    }
+
+
+    private mutating func forStatement() throws -> Statement
+    {
+        _ = try self.consume(token_type: .LEFT_PARENTHESIS, message: "Expected `(` after `for`.")
+        var initializer: Statement?
+        if self.match_and_advance(tokens: .SEMICOLON)
+        {
+            initializer = nil
+        }
+        else if self.match_and_advance(tokens: .VAR)
+        {
+            initializer = try self.varDeclaration()
+        }
+        else
+        {
+            initializer = try self.expressionStatement()
+        }
+
+        let condition = self.check_current_token(of_type: .SEMICOLON)
+            ? LiteralExp(value: .keyword("true"))
+            : try self.expression()
+        _ = try self.consume(token_type: .SEMICOLON, message: "Expected `;` after loop condition.")
+
+        var increment: Expression? = nil
+        if !self.check_current_token(of_type: .RIGHT_PARENTHESIS)
+        {
+            increment = try self.expression()
+        }
+        _ = try self.consume(token_type: .RIGHT_PARENTHESIS, message: "Expected `)` after for clauses.")
+
+        var body = try self.statement()
+
+        // Apply the increment expression after each iteration of the body
+        if let increment = increment
+        {
+            body = Block(
+                statements: [
+                    body,
+                    ExpressionStatement(expression: increment) ])
+        }
+
+        // Execute the body while the condition is true
+        body = WhileStatement(condition: condition, body: body)
+
+        // Run the initializer before anything else in the loop
+        if let initializer = initializer
+        {
+            body = Block(statements: [initializer, body])
+        }
+
+        return body
     }
 
 
