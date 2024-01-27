@@ -1,0 +1,14 @@
+for (var i = 0; i < 8; i = i + 1)
+{
+    print "Outer loop";
+    while(i<4)
+    {
+        i = i + 1;
+        print "Inner loop";
+        break;
+    }
+    break;
+}
+
+// Uncomment to test the parse error
+//break;

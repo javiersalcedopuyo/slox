@@ -353,6 +353,8 @@ struct Scanner
         "this":     .THIS,
         "true":     .TRUE,
         "var":      .VAR,
-        "while":    .WHILE
+        "while":    .WHILE,
+        "break":    .BREAK,
+        "continue": .CONTINUE
     ]
 }

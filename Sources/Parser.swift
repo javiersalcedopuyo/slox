@@ -60,6 +60,7 @@ struct Parser
     // - MARK: Private
     private let tokens: [Token]
     private var current_token_idx = 0
+    private var loop_indent_level = 0
 
 
     private mutating func declaration() -> Statement?
@@ -93,6 +94,14 @@ struct Parser
         {
             Lox.error(line: line, message: "Invalid assignment target.")
             return nil // There's no need to synchronize on this error
+        }
+        catch ParserError.BreakStatementOutsideLoop(let line)
+        {
+            Lox.error(line: line, message: "Break statement used outside of loop.")
+        }
+        catch ParserError.ContinueStatementOutsideLoop(let line)
+        {
+            Lox.error(line: line, message: "Continue statement used outside of loop.")
         }
         catch
         {
@@ -139,6 +148,14 @@ struct Parser
         if self.match_and_advance(tokens: .FOR)
         {
             return try self.forStatement()
+        }
+        if self.match_and_advance(tokens: .BREAK)
+        {
+            return try self.breakStatement()
+        }
+        if self.match_and_advance(tokens: .CONTINUE)
+        {
+            // TODO:
         }
         return try self.expressionStatement()
     }
@@ -190,6 +207,9 @@ struct Parser
 
     private mutating func whileStatement() throws -> Statement
     {
+        self.loop_indent_level += 1
+        defer { self.loop_indent_level -= 1 }
+
         _ = try self.consume(token_type: .LEFT_PARENTHESIS, message: "Expected `(` after `while`.")
         let condition = try self.expression()
         _ = try self.consume(token_type: .RIGHT_PARENTHESIS, message: "Expected `)` after `while` condition.")
@@ -201,6 +221,9 @@ struct Parser
 
     private mutating func forStatement() throws -> Statement
     {
+        self.loop_indent_level += 1
+        defer { self.loop_indent_level -= 1 }
+
         _ = try self.consume(token_type: .LEFT_PARENTHESIS, message: "Expected `(` after `for`.")
         var initializer: Statement?
         if self.match_and_advance(tokens: .SEMICOLON)
@@ -250,6 +273,20 @@ struct Parser
 
         return body
     }
+
+
+    private mutating func breakStatement() throws -> Statement
+    {
+        if self.loop_indent_level == 0
+        {
+            throw ParserError.BreakStatementOutsideLoop(line: self.previous().line)
+        }
+        _ = try self.consume(token_type: .SEMICOLON, message: "Expected `;` after expression.")
+        return BreakStatement()
+    }
+
+
+    // TODO: private mutating func continueStatement() throws -> Statement
 
 
     private mutating func expressionStatement() throws -> ExpressionStatement
@@ -566,4 +603,6 @@ enum ParserError : Error
     case ExpectedExpression(token: Token)
     case MissingLeftOperand(token: Token) // TODO: Include the expression for better error message
     case InvalidAssignmentTarget(line: Int)
+    case BreakStatementOutsideLoop(line: Int)
+    case ContinueStatementOutsideLoop(line: Int)
 }

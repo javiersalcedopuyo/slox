@@ -46,6 +46,12 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
                 line: variable.line,
                 message: "❌ RUNTIME ERROR: Undefined variable `\(variable.lexeme)`.")
         }
+        catch BreakOrContinue.Break, BreakOrContinue.Continue
+        {
+            fatalError(
+                "💀 FATAL RUNTIME ERROR: Break or Continue statement outside of loop!\n" +
+                "This should never happen as it should've been caught by the parser!")
+        }
         catch
         {
             Lox.runtimeError(line: -1, message: "? UNKOWN RUNTIME ERROR")
@@ -247,7 +253,19 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     {
         while Self.isTruthful( try self.evaluate(expression: whilestatement.condition) )
         {
-            try self.execute(statement: whilestatement.body)
+            do
+            {
+                try self.execute(statement: whilestatement.body)
+            }
+            catch BreakOrContinue.Break
+            {
+                break
+            }
+            // TODO: Continue
+            catch
+            {
+                throw error
+            }
         }
         return nil
     }
@@ -270,6 +288,12 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     public mutating func visit(_ variable: Variable) throws -> R
     {
         try self.environment.get(name: variable.name)
+    }
+
+
+    public mutating func visit(_ breakstatement: BreakStatement) throws -> Any?
+    {
+        throw BreakOrContinue.Break
     }
 
 
@@ -374,4 +398,11 @@ enum RuntimeError: Error
     case ObjectNonConvertibleToString
     case UndeclaredVariable(variable: Token)
     case UndefinedVariable(variable: Token)
+}
+
+
+enum BreakOrContinue: Error
+{
+    case Break
+    case Continue
 }

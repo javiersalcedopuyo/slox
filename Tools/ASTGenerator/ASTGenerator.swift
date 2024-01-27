@@ -40,6 +40,8 @@ struct ASTGenerator
                     "ExpressionStatement: Expression expression",
                     "ConditionalStatement: Expression condition, Statement then_branch, Statement? else_branch",
                     "WhileStatement: Expression condition, Statement body",
+                    "BreakStatement",
+                    // TODO: ContinueStatement
                     "Print: Expression expression",
                     "VarStatement: Token name, Expression? initializer"])
         }
@@ -112,32 +114,36 @@ func parse_sub_type(base_name: String, descriptor: String) -> String
     // I'm assuming the input will be properly formatted.
     // Not great but this is just to automate some boilerplate.
 
-    let class_name = descriptor.split(separator: ":")[0]
-        .trimmingCharacters(in: .whitespaces)
+    let class_and_fields = descriptor.split(separator: ":")
+    assert(class_and_fields.count > 0) // At least there should be a class name
+
+    let class_name = class_and_fields[0].trimmingCharacters(in: .whitespaces)
 
     var output = "\n\n\n"
     output += "struct " + class_name + ": " + base_name + "\n"
     output += "{\n"
 
-    let fields = descriptor.split(separator: ":")[1]
-        .trimmingCharacters(in: .whitespaces)
-        .split(separator: ",")
-
-    for field in fields
+    if class_and_fields.count > 1
     {
-        // Not the most efficient but whatever...
-        let type = field
+        let fields = descriptor.split(separator: ":")[1]
             .trimmingCharacters(in: .whitespaces)
-            .split(separator: " ")[0]
+            .split(separator: ",")
 
-        let name = field
-            .trimmingCharacters(in: .whitespaces)
-            .split(separator: " ")[1]
+        for field in fields
+        {
+            // Not the most efficient but whatever...
+            let type = field
+                .trimmingCharacters(in: .whitespaces)
+                .split(separator: " ")[0]
 
-        output += "\tlet " + name + ": " + type + "\n"
+            let name = field
+                .trimmingCharacters(in: .whitespaces)
+                .split(separator: " ")[1]
+
+            output += "\tlet " + name + ": " + type + "\n"
+        }
+        output += "\n"
     }
-
-    output += "\n"
     output += "\tfunc accept<R, V: \(base_name)Visitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }\n"
 
     output += "}\n"

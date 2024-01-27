@@ -66,6 +66,8 @@ enum TokenType
     case RETURN
     case NIL
     case PRINT
+    case BREAK
+    case CONTINUE
 
     case EOF
 }
