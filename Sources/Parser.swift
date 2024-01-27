@@ -2,6 +2,7 @@
 // program      -> statement* EOF ;
 // declaration  -> varDecl | statement ;
 // varDecl      -> "var" IDENTIFIER ( "=" expression )? ";" ;
+// whileStmt    -> "while" "("expression")" statement;
 // statement    -> exprStmt | printStmt | ifStmt | block;
 // block        -> "{" declaration "}"
 // exprStmt     -> expression ";" ;
@@ -126,6 +127,10 @@ struct Parser
         {
             return try self.conditionalStatement()
         }
+        if self.match_and_advance(tokens: .WHILE)
+        {
+            return try self.whileStatement()
+        }
         return try self.expressionStatement()
     }
 
@@ -171,6 +176,17 @@ struct Parser
             condition: condition,
             then_branch: then_branch,
             else_branch: else_branch)
+    }
+
+
+    private mutating func whileStatement() throws -> Statement
+    {
+        _ = try self.consume(token_type: .LEFT_PARENTHESIS, message: "Expected `(` after `while`.")
+        let condition = try self.expression()
+        _ = try self.consume(token_type: .RIGHT_PARENTHESIS, message: "Expected `)` after `while` condition.")
+        let body = try self.statement()
+
+        return WhileStatement(condition: condition, body: body)
     }
 
 

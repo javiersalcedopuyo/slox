@@ -243,6 +243,16 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
+    public mutating func visit(_ whilestatement: WhileStatement) throws -> Any?
+    {
+        while Self.isTruthful( try self.evaluate(expression: whilestatement.condition) )
+        {
+            try self.execute(statement: whilestatement.body)
+        }
+        return nil
+    }
+
+
     public mutating func visit(_ conditionalstatement: ConditionalStatement) throws -> R
     {
         if Self.isTruthful( try self.evaluate(expression: conditionalstatement.condition) )
