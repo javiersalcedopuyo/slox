@@ -23,7 +23,9 @@
 // comparison   -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 // term         -> factor ( ( "-" | "+" ) factor )* ;
 // factor       -> unary ( ( "/" | "*" ) unary )* ;
-// unary        -> ( "!" | "-" ) unary | primary ;
+// unary        -> ( "!" | "-" ) unary | call ;
+// call         -> primary ( "(" arguments? ")" )*;
+// arguments    -> expression ( "," expression )*;
 // primary      -> NUMBER | STRING
 //                  | "true" | "false" | "nil"
 //                  | "(" expression ")"
@@ -427,7 +429,52 @@ struct Parser
         {
             return try Unary(op: previous(), right: unary())
         }
-        return try primary()
+        return try self.call()
+    }
+
+
+    private mutating func call() throws -> Expression
+    {
+        var expression = try self.primary()
+        while true
+        {
+            if self.match_and_advance(tokens: .LEFT_PARENTHESIS)
+            {
+                expression = try self.finishCall(callee: expression)
+            }
+            else
+            {
+                break;
+            }
+        }
+        return expression
+    }
+
+
+    private mutating func finishCall(callee: Expression) throws -> Expression
+    {
+        var arguments: [Expression] = []
+        if !self.check_current_token(of_type: .RIGHT_PARENTHESIS)
+        {
+            repeat
+            {
+                if arguments.count >= 255
+                {
+                    // Don't throw, the parser is still in a valid state.
+                    Lox.error(
+                        line: self.peek().line,
+                        message: "Too many function arguments. Limit is 255.")
+                }
+                arguments.append( try self.expression() )
+            }
+            while self.match_and_advance(tokens: .COMMA)
+        }
+
+        let parenthesis = try self.consume(
+            token_type: .RIGHT_PARENTHESIS,
+            message: "Expected `)` after function arguments")
+
+        return Call(callee: callee, parenthesis: parenthesis, arguments: arguments)
     }
 
 

@@ -4,6 +4,7 @@ protocol ExpressionVisitor
 
 	mutating func visit(_ assignment: Assignment) throws -> R
 	mutating func visit(_ binary: Binary) throws -> R
+	mutating func visit(_ call: Call) throws -> R
 	mutating func visit(_ grouping: Grouping) throws -> R
 	mutating func visit(_ literalexp: LiteralExp) throws -> R
 	mutating func visit(_ logical: Logical) throws -> R
@@ -37,6 +38,17 @@ struct Binary: Expression
 	let left: Expression
 	let op: Token
 	let right: Expression
+
+	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+}
+
+
+
+struct Call: Expression
+{
+	let callee: Expression
+	let parenthesis: Token
+	let arguments: [Expression]
 
 	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
 }

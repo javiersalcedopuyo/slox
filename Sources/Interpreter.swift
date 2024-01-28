@@ -4,6 +4,14 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
 {
     typealias R = Any?
 
+    public init()
+    {
+        self.global_scope = Environment()
+        self.global_scope.define(name: "clock", value: ClockPrimitive())
+
+        self.current_scope = self.global_scope
+    }
+
     // - MARK: Public
     mutating public func interpret(statements: [Statement], repl_mode: Bool)
     {
@@ -46,6 +54,20 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
                 line: variable.line,
                 message: "❌ RUNTIME ERROR: Undefined variable `\(variable.lexeme)`.")
         }
+        catch RuntimeError.UncallableCallee(let line)
+        {
+            Lox.runtimeError(
+                line: line,
+                message: "❌ RUNTIME ERROR: Only functions and classes (constructors) can be called.")
+        }
+        catch RuntimeError.MismatchingArity(let line, let expected, let found)
+        {
+            Lox.runtimeError(
+                line: line,
+                message:
+                    "❌ RUNTIME ERROR: "
+                    + "Function called expected \(expected) arguments but \(found) were provided.")
+        }
         catch BreakOrContinue.Break, BreakOrContinue.Continue
         {
             fatalError(
@@ -62,7 +84,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     public mutating func visit(_ assignment: Assignment) throws -> R
     {
         let value = try self.evaluate(expression: assignment.value)
-        try self.environment.assign(name: assignment.name, value: value)
+        try self.current_scope.assign(name: assignment.name, value: value)
         return value
     }
 
@@ -213,6 +235,33 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
+    public mutating func visit(_ call: Call) throws -> Any?
+    {
+        let callee = try self.evaluate(expression: call.callee)
+
+        guard let function = callee as? Callable else
+        {
+            throw RuntimeError.UncallableCallee(line: call.parenthesis.line)
+        }
+
+        var arguments: [R] = []
+        for argument in call.arguments
+        {
+            arguments.append( try self.evaluate(expression: argument) )
+        }
+
+        if arguments.count != function.arity
+        {
+            throw RuntimeError.MismatchingArity(
+                line: call.parenthesis.line,
+                expected: function.arity,
+                found: arguments.count)
+        }
+
+        return function.call(interpreter: self, arguments: arguments)
+    }
+
+
     public mutating func visit(_ statement: ExpressionStatement) throws -> R
     {
         _ = try self.evaluate(expression: statement.expression)
@@ -236,7 +285,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
             value = try self.evaluate(expression: initializer)
         }
 
-        self.environment.define(name: variable.name.lexeme, value: value)
+        self.current_scope.define(name: variable.name.lexeme, value: value)
         return nil
     }
 
@@ -245,7 +294,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     {
         try self.execute(
             block: block,
-            environment: Environment(in_scope: self.environment))
+            environment: Environment(in_scope: self.current_scope))
     }
 
 
@@ -287,7 +336,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
 
     public mutating func visit(_ variable: Variable) throws -> R
     {
-        try self.environment.get(name: variable.name)
+        try self.current_scope.get(name: variable.name)
     }
 
 
@@ -303,10 +352,10 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
 
     mutating private func execute(block: Block, environment scope: Environment) throws
     {
-        let previous_environment = self.environment
-        defer { self.environment = previous_environment }
+        let previous_environment = self.current_scope
+        defer { self.current_scope = previous_environment }
 
-        self.environment = scope
+        self.current_scope = scope
         for statement in block.statements
         {
             try self.execute(statement: statement)
@@ -386,7 +435,8 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    private var environment = Environment()
+    private let global_scope: Environment
+    private var current_scope: Environment
 }
 
 
@@ -398,6 +448,8 @@ enum RuntimeError: Error
     case ObjectNonConvertibleToString
     case UndeclaredVariable(variable: Token)
     case UndefinedVariable(variable: Token)
+    case UncallableCallee(line: Int)
+    case MismatchingArity(line: Int, expected: Int, found: Int)
 }
 
 
