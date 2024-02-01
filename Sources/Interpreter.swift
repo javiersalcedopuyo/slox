@@ -70,7 +70,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
                     "❌ RUNTIME ERROR: "
                     + "Function called expected \(expected) arguments but \(found) were provided.")
         }
-        catch BreakOrContinue.Break, BreakOrContinue.Continue
+        catch FlowBreakers.Break, FlowBreakers.Continue
         {
             fatalError(
                 "💀 FATAL RUNTIME ERROR: Break or Continue statement outside of loop!\n" +
@@ -316,7 +316,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
             {
                 try self.execute(statement: whilestatement.body)
             }
-            catch BreakOrContinue.Break
+            catch FlowBreakers.Break
             {
                 break
             }
@@ -352,7 +352,17 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
 
     public mutating func visit(_ breakstatement: BreakStatement) throws -> Any?
     {
-        throw BreakOrContinue.Break
+        throw FlowBreakers.Break
+    }
+
+
+    public mutating func visit(_ returnstatment: ReturnStatment) throws -> Any?
+    {
+        let value = returnstatment.value != nil
+            ? try self.evaluate(expression: returnstatment.value!)
+            : nil
+
+        throw FlowBreakers.Return(value)
     }
 
 
@@ -462,8 +472,9 @@ enum RuntimeError: Error
 }
 
 
-enum BreakOrContinue: Error
+enum FlowBreakers: Error
 {
     case Break
     case Continue
+    case Return(Any?)
 }

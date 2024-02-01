@@ -10,6 +10,7 @@ protocol StatementVisitor
 	mutating func visit(_ breakstatement: BreakStatement) throws -> R
 	mutating func visit(_ print: Print) throws -> R
 	mutating func visit(_ varstatement: VarStatement) throws -> R
+	mutating func visit(_ returnstatment: ReturnStatment) throws -> R
 }
 
 
@@ -91,6 +92,16 @@ struct VarStatement: Statement
 {
 	let name: Token
 	let initializer: Expression?
+
+	func accept<R, V: StatementVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+}
+
+
+
+struct ReturnStatment: Statement
+{
+	let keyword: Token
+	let value: Expression?
 
 	func accept<R, V: StatementVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
 }

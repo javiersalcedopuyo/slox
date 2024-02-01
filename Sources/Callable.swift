@@ -32,8 +32,14 @@ struct Function: Callable
             i += 1
         }
 
-        try interpreter.execute(block: self.declaration.body, environment: environment)
-
+        do
+        {
+            try interpreter.execute(block: self.declaration.body, environment: environment)
+        }
+        catch FlowBreakers.Return(let value)
+        {
+            return value
+        }
         return nil
     }
 

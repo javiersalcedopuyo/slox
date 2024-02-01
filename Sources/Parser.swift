@@ -5,13 +5,14 @@
 // function     -> IDENTIFIER "(" parameters? ")" block;
 // parameters   -> IDENTIFIER ( "," IDENTIFIER )* ;
 // varDecl      -> "var" IDENTIFIER ( "=" expression )? ";" ;
+// statement    -> exprStmt | printStmt | ifStmt | block | whileStmt | forStmt | returnStmt;
+// returnStmt   -> "return" expression? ";";
 // whileStmt    -> "while" "("expression")" statement;
 // forStmt      -> "for" "("
 //                      (varDecl | exprStmt) ";"
 //                      expression? ";"
 //                      expression? ")"
 //                  statement;
-// statement    -> exprStmt | printStmt | ifStmt | block;
 // block        -> "{" declaration "}"
 // exprStmt     -> expression ";" ;
 // printStmt    -> "print" expression ";" ;
@@ -216,6 +217,10 @@ struct Parser
         {
             // TODO:
         }
+        if self.match_and_advance(tokens: .RETURN)
+        {
+            return try self.returnStatement()
+        }
         return try self.expressionStatement()
     }
 
@@ -346,6 +351,19 @@ struct Parser
 
 
     // TODO: private mutating func continueStatement() throws -> Statement
+
+
+    private mutating func returnStatement() throws -> Statement
+    {
+        let keyword = self.previous()
+        let value = self.check_current_token(of_type: .SEMICOLON)
+            ? nil
+            : try self.expression()
+
+        _ = try self.consume(token_type: .SEMICOLON, message: "Expected `;` after return.")
+
+        return ReturnStatment(keyword: keyword, value: value)
+    }
 
 
     private mutating func expressionStatement() throws -> ExpressionStatement

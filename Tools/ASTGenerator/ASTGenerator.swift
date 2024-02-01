@@ -14,24 +14,21 @@ struct ASTGenerator
 
         let output_dir = arguments[1]
 
-        let types = [
-            "Assignment: Token name, Expression value",
-            "Binary: Expression left, Token op, Expression right",
-            "Call: Expression callee, Token parenthesis, [Expression] arguments",
-            "Grouping: Expression expression",
-            "LiteralExp: Literal? value",
-            "Logical: Expression left, Token op, Expression right",
-            "Unary: Token op, Expression right",
-            "Ternary: Expression condition, Expression then_branch, Expression else_branch",
-            "Variable: Token name"
-        ]
-
         do
         {
             try define_AST(
                 output_directory: output_dir,
                 base_name: "Expression",
-                types: types)
+                types: [
+                    "Assignment: Token name, Expression value",
+                    "Binary: Expression left, Token op, Expression right",
+                    "Call: Expression callee, Token parenthesis, [Expression] arguments",
+                    "Grouping: Expression expression",
+                    "LiteralExp: Literal? value",
+                    "Logical: Expression left, Token op, Expression right",
+                    "Unary: Token op, Expression right",
+                    "Ternary: Expression condition, Expression then_branch, Expression else_branch",
+                    "Variable: Token name"])
 
             try define_AST(
                 output_directory: output_dir,
@@ -45,7 +42,8 @@ struct ASTGenerator
                     "BreakStatement",
                     // TODO: ContinueStatement
                     "Print: Expression expression",
-                    "VarStatement: Token name, Expression? initializer"])
+                    "VarStatement: Token name, Expression? initializer",
+                    "ReturnStatment: Token keyword, Expression? value"])
         }
         catch
         {
