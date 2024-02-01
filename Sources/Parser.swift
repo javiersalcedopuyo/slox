@@ -1,6 +1,9 @@
 // GRAMMAR: ////////////////////////////////////////////////////////////////////////////////////////
 // program      -> statement* EOF ;
-// declaration  -> varDecl | statement ;
+// declaration  -> funDecl | varDecl | statement ;
+// funDecl      -> "fun" function;
+// function     -> IDENTIFIER "(" parameters? ")" block;
+// parameters   -> IDENTIFIER ( "," IDENTIFIER )* ;
 // varDecl      -> "var" IDENTIFIER ( "=" expression )? ";" ;
 // whileStmt    -> "while" "("expression")" statement;
 // forStmt      -> "for" "("
@@ -60,6 +63,8 @@ struct Parser
 
 
     // - MARK: Private
+    static private let max_number_of_function_parameters = 255
+
     private let tokens: [Token]
     private var current_token_idx = 0
     private var loop_indent_level = 0
@@ -69,6 +74,10 @@ struct Parser
     {
         do
         {
+            if self.match_and_advance(tokens: .FUN)
+            {
+                return try self.funDeclaration(of_type: .Function)
+            }
             if self.match_and_advance(tokens: .VAR)
             {
                 return try self.varDeclaration()
@@ -115,6 +124,54 @@ struct Parser
     }
 
 
+    private mutating func funDeclaration(of_type type: FunctionTypes) throws -> Statement
+    {
+        let type_name = switch type
+        {
+            case .Function: "function"
+            case .Method: "method"
+        }
+        let name = try self.consume(token_type: .IDENTIFIER, message: "Expected \(type_name) name.")
+
+        _ = try self.consume(
+            token_type: .LEFT_PARENTHESIS,
+            message: "Expected `(` after \(type_name) name.")
+
+        var parameters: [Token] = []
+        if !self.check_current_token(of_type: .RIGHT_PARENTHESIS)
+        {
+            repeat
+            {
+                if parameters.count > Self.max_number_of_function_parameters
+                {
+                    // Don't throw, the parser is still in a valid state.
+                    Lox.error(
+                        line: self.peek().line,
+                        message: "Too many function parameters. Limit is 255.")
+                }
+
+                parameters.append(
+                    try self.consume(
+                        token_type: .IDENTIFIER,
+                        message: "Expected parameter name.") )
+            }
+            while self.match_and_advance(tokens: .COMMA)
+        }
+        _ = try self.consume(
+            token_type: .RIGHT_PARENTHESIS,
+            message: "Expected `)` after \(type_name) parameters.")
+
+        _ = try self.consume(
+            token_type: .LEFT_BRACE,
+            message: "Expected `{` before \(type_name) body.")
+
+        return FunStatement(
+            name: name,
+            parameters: parameters,
+            body: try self.blockStatement())
+    }
+
+
     private mutating func varDeclaration() throws -> Statement
     {
         let name = try self.consume(token_type: .IDENTIFIER, message: "Expected variable name.")
@@ -137,7 +194,7 @@ struct Parser
         }
         if self.match_and_advance(tokens: .LEFT_BRACE)
         {
-            return Block(statements: try self.blockStatement())
+            return try self.blockStatement()
         }
         if self.match_and_advance(tokens: .IF)
         {
@@ -171,7 +228,7 @@ struct Parser
     }
 
 
-    private mutating func blockStatement() throws -> [Statement]
+    private mutating func blockStatement() throws -> Block
     {
         var statements: [Statement] = []
 
@@ -183,7 +240,7 @@ struct Parser
             }
         }
         try _ = self.consume(token_type: .RIGHT_BRACE, message: "Expected `}` after block.")
-        return statements
+        return Block(statements: statements)
     }
 
 
@@ -458,7 +515,7 @@ struct Parser
         {
             repeat
             {
-                if arguments.count >= 255
+                if arguments.count >= Self.max_number_of_function_parameters
                 {
                     // Don't throw, the parser is still in a valid state.
                     Lox.error(
@@ -652,4 +709,11 @@ enum ParserError : Error
     case InvalidAssignmentTarget(line: Int)
     case BreakStatementOutsideLoop(line: Int)
     case ContinueStatementOutsideLoop(line: Int)
+}
+
+
+enum FunctionTypes
+{
+    case Function
+    case Method
 }

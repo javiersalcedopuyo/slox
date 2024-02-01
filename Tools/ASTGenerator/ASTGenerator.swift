@@ -40,6 +40,7 @@ struct ASTGenerator
                     "Block: [Statement] statements",
                     "ExpressionStatement: Expression expression",
                     "ConditionalStatement: Expression condition, Statement then_branch, Statement? else_branch",
+                    "FunStatement: Token name, [Token] parameters, Block body",
                     "WhileStatement: Expression condition, Statement body",
                     "BreakStatement",
                     // TODO: ContinueStatement

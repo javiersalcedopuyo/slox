@@ -5,6 +5,7 @@ protocol StatementVisitor
 	mutating func visit(_ block: Block) throws -> R
 	mutating func visit(_ expressionstatement: ExpressionStatement) throws -> R
 	mutating func visit(_ conditionalstatement: ConditionalStatement) throws -> R
+	mutating func visit(_ funstatement: FunStatement) throws -> R
 	mutating func visit(_ whilestatement: WhileStatement) throws -> R
 	mutating func visit(_ breakstatement: BreakStatement) throws -> R
 	mutating func visit(_ print: Print) throws -> R
@@ -43,6 +44,17 @@ struct ConditionalStatement: Statement
 	let condition: Expression
 	let then_branch: Statement
 	let else_branch: Statement?
+
+	func accept<R, V: StatementVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+}
+
+
+
+struct FunStatement: Statement
+{
+	let name: Token
+	let parameters: [Token]
+	let body: Block
 
 	func accept<R, V: StatementVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
 }

@@ -4,6 +4,8 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
 {
     typealias R = Any?
 
+    public let global_scope: Environment
+
     public init()
     {
         self.global_scope = Environment()
@@ -258,7 +260,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
                 found: arguments.count)
         }
 
-        return function.call(interpreter: self, arguments: arguments)
+        return try function.call(interpreter: &self, arguments: arguments)
     }
 
 
@@ -286,6 +288,14 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
         }
 
         self.current_scope.define(name: variable.name.lexeme, value: value)
+        return nil
+    }
+
+
+    public mutating func visit(_ funstatement: FunStatement) throws -> Any?
+    {
+        let function = Function(declaration: funstatement)
+        self.current_scope.define(name: funstatement.name.lexeme, value: function)
         return nil
     }
 
@@ -346,11 +356,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    // - MARK: Private
-    mutating private func evaluate(expression: Expression) throws -> R { try expression.accept(visitor: &self) }
-
-
-    mutating private func execute(block: Block, environment scope: Environment) throws
+    mutating public func execute(block: Block, environment scope: Environment) throws
     {
         let previous_environment = self.current_scope
         defer { self.current_scope = previous_environment }
@@ -363,7 +369,11 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    mutating private func execute(statement: Statement) throws { try _ = statement.accept(visitor: &self) }
+    mutating public func execute(statement: Statement) throws { try _ = statement.accept(visitor: &self) }
+
+
+    // - MARK: Private
+    mutating private func evaluate(expression: Expression) throws -> R { try expression.accept(visitor: &self) }
 
 
     private static func areEqual(_ a: Any?, _ b: Any?) -> Bool { a as? NSObject == b as? NSObject }
@@ -435,7 +445,6 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    private let global_scope: Environment
     private var current_scope: Environment
 }
 
