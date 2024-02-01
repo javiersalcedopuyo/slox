@@ -224,7 +224,8 @@ struct Scanner
 
     private mutating func add_identifier_token()
     {
-        while !self.is_at_end() && is_alphanumeric( self.peek() ?? "\0" )
+        while !self.is_at_end()
+            && ( is_alphanumeric( self.peek() ?? "\0" ) || self.peek() == "_" )
         {
             _ = self.advance()
         }
