@@ -13,17 +13,18 @@ struct Function: Callable
     // - MARK: Public
     public let arity: Int;
 
-    public init(declaration: FunStatement)
+    public init(declaration: FunStatement, closure: Environment)
     {
         self.declaration = declaration
         self.arity = declaration.parameters.count
+        self.closure = closure
     }
 
     public func call(interpreter: inout Interpreter, arguments: [Any?]) throws -> Any?
     {
         assert( self.declaration.parameters.count == arguments.count )
 
-        let environment = Environment(in_scope: interpreter.global_scope)
+        let environment = Environment(in_scope: self.closure)
 
         var i = 0
         for parameter in self.declaration.parameters
@@ -45,6 +46,7 @@ struct Function: Callable
 
     // - MARK: Private
     private let declaration: FunStatement
+    private let closure: Environment // The Environment active when the function was *declared*
 }
 
 

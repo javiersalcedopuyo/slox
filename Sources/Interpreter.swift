@@ -294,7 +294,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
 
     public mutating func visit(_ funstatement: FunStatement) throws -> Any?
     {
-        let function = Function(declaration: funstatement)
+        let function = Function(declaration: funstatement, closure: self.current_scope)
         self.current_scope.define(name: funstatement.name.lexeme, value: function)
         return nil
     }
