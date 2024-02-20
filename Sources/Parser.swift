@@ -34,6 +34,7 @@
 //                  | "true" | "false" | "nil"
 //                  | "(" expression ")"
 //                  | IDENTIFIER
+//                  | "fun" "(" parameters? ")" block;
 //                  // Error productions
 //                  | ( "!=" | "==" ) equality
 //                  | ( ">" | ">=" | "<" | "<=" ) comparison
@@ -75,8 +76,9 @@ struct Parser
     {
         do
         {
-            if self.match_and_advance(tokens: .FUN)
+            if self.check_current_token(of_type: .FUN) && self.check_next_token(of_type: .IDENTIFIER)
             {
+                try _ = self.consume(token_type: .FUN, message: "This should never happen")
                 return try self.funDeclaration(of_type: .Function)
             }
             if self.match_and_advance(tokens: .VAR)
@@ -125,14 +127,14 @@ struct Parser
     }
 
 
-    private mutating func funDeclaration(of_type type: FunctionTypes) throws -> Statement
+    private mutating func functionBody(of_type type: FunctionTypes) throws -> FunExpression
     {
         let type_name = switch type
         {
             case .Function: "function"
-            case .Method: "method"
+            case .Method:   "method"
+            case .Lambda:   "lambda"
         }
-        let name = try self.consume(token_type: .IDENTIFIER, message: "Expected \(type_name) name.")
 
         _ = try self.consume(
             token_type: .LEFT_PARENTHESIS,
@@ -166,10 +168,25 @@ struct Parser
             token_type: .LEFT_BRACE,
             message: "Expected `{` before \(type_name) body.")
 
-        return FunStatement(
-            name: name,
+        return FunExpression(
             parameters: parameters,
             body: try self.blockStatement())
+
+    }
+
+    private mutating func funDeclaration(of_type type: FunctionTypes) throws -> Statement
+    {
+        let type_name = switch type
+        {
+            case .Function: "function"
+            case .Method:   "method"
+            case .Lambda:   "lambda"
+        }
+        let name = try self.consume(token_type: .IDENTIFIER, message: "Expected \(type_name) name.")
+
+        return try FunStatement(
+            name: name,
+            function: self.functionBody(of_type: type))
     }
 
 
@@ -580,6 +597,11 @@ struct Parser
             return Grouping(expression: expression)
         }
 
+        if match_and_advance(tokens: .FUN)
+        {
+            return try self.functionBody(of_type: .Lambda)
+        }
+
         // Error productions
         if match_and_advance(tokens: .BANG_EQUAL, .EQUAL_EQUAL)
         {
@@ -631,6 +653,13 @@ struct Parser
     private func check_current_token(of_type type: TokenType) -> Bool
     {
         self.is_at_end() == false && self.peek().type == type
+    }
+
+    private func check_next_token(of_type type: TokenType) -> Bool
+    {
+        self.is_at_end() == false
+        && self.current_token_idx + 1 < self.tokens.count
+        && self.tokens[self.current_token_idx + 1].type == type
     }
 
 
@@ -734,4 +763,5 @@ enum FunctionTypes
 {
     case Function
     case Method
+    case Lambda
 }

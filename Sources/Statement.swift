@@ -54,8 +54,7 @@ struct ConditionalStatement: Statement
 struct FunStatement: Statement
 {
 	let name: Token
-	let parameters: [Token]
-	let body: Block
+	let function: FunExpression
 
 	func accept<R, V: StatementVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
 }

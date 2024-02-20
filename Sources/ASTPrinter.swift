@@ -120,6 +120,17 @@ struct ASTPrinter : ExpressionVisitor
 
 
 
+    /// "Prettyfies" a `Function` expression
+    /// - Parameter call: The expression to transform
+    /// - Returns: The "prettyfied" expression
+    public func visit(_ function: FunExpression) -> String
+    {
+        // TODO:
+        "function expression (TODO)"
+    }
+
+
+
     /// Prints expressions wrapping grouping and nesting in parenthesis
     /// - Parameters:
     ///   - name:
@@ -259,6 +270,16 @@ struct ASTPrinterReversePolishNotation: ExpressionVisitor
         "function call (TODO)"
     }
 
+
+
+    /// "Prettyfies" a `Function` expression
+    /// - Parameter call: The expression to transform
+    /// - Returns: The "prettyfied" expression
+    public func visit(_ function: FunExpression) -> String
+    {
+        // TODO:
+        "function expression (TODO)"
+    }
 
 
 

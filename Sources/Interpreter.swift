@@ -263,6 +263,11 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
         return try function.call(interpreter: &self, arguments: arguments)
     }
 
+    public mutating func visit(_ function: FunExpression) throws -> R
+    {
+        return Function(declaration: function, closure: self.current_scope)
+    }
+
 
     public mutating func visit(_ statement: ExpressionStatement) throws -> R
     {
@@ -294,7 +299,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
 
     public mutating func visit(_ funstatement: FunStatement) throws -> Any?
     {
-        let function = Function(declaration: funstatement, closure: self.current_scope)
+        let function = Function(declaration: funstatement.function, closure: self.current_scope)
         self.current_scope.define(name: funstatement.name.lexeme, value: function)
         return nil
     }

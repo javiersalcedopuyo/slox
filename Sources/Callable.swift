@@ -13,7 +13,7 @@ struct Function: Callable
     // - MARK: Public
     public let arity: Int;
 
-    public init(declaration: FunStatement, closure: Environment)
+    public init(declaration: FunExpression, closure: Environment)
     {
         self.declaration = declaration
         self.arity = declaration.parameters.count
@@ -45,7 +45,7 @@ struct Function: Callable
     }
 
     // - MARK: Private
-    private let declaration: FunStatement
+    private let declaration: FunExpression
     private let closure: Environment // The Environment active when the function was *declared*
 }
 

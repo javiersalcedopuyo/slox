@@ -11,6 +11,7 @@ protocol ExpressionVisitor
 	mutating func visit(_ unary: Unary) throws -> R
 	mutating func visit(_ ternary: Ternary) throws -> R
 	mutating func visit(_ variable: Variable) throws -> R
+	mutating func visit(_ funexpression: FunExpression) throws -> R
 }
 
 
@@ -108,6 +109,16 @@ struct Ternary: Expression
 struct Variable: Expression
 {
 	let name: Token
+
+	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+}
+
+
+
+struct FunExpression: Expression
+{
+	let parameters: [Token]
+	let body: Block
 
 	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
 }

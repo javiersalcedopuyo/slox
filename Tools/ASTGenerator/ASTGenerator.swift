@@ -28,7 +28,8 @@ struct ASTGenerator
                     "Logical: Expression left, Token op, Expression right",
                     "Unary: Token op, Expression right",
                     "Ternary: Expression condition, Expression then_branch, Expression else_branch",
-                    "Variable: Token name"])
+                    "Variable: Token name",
+                    "FunExpression: [Token] parameters, Block body"])
 
             try define_AST(
                 output_directory: output_dir,
@@ -37,7 +38,7 @@ struct ASTGenerator
                     "Block: [Statement] statements",
                     "ExpressionStatement: Expression expression",
                     "ConditionalStatement: Expression condition, Statement then_branch, Statement? else_branch",
-                    "FunStatement: Token name, [Token] parameters, Block body",
+                    "FunStatement: Token name, FunExpression function",
                     "WhileStatement: Expression condition, Statement body",
                     "BreakStatement",
                     // TODO: ContinueStatement
