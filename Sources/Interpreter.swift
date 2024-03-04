@@ -86,7 +86,20 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     public mutating func visit(_ assignment: Assignment) throws -> R
     {
         let value = try self.evaluate(expression: assignment.value)
-        try self.current_scope.assign(name: assignment.name, value: value)
+
+        if let distance = withUnsafePointer(
+            to: assignment,
+            { (ptr: UnsafePointer<Expression>) -> Int? in self.locals[ptr] } )
+        {
+            try self.current_scope.assign(
+                at_distance: distance,
+                name: assignment.name,
+                value: assignment.value)
+        }
+        else
+        {
+            try self.global_scope.assign(name: assignment.name, value: value)
+        }
         return value
     }
 
@@ -387,6 +400,17 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     mutating public func execute(statement: Statement) throws { try _ = statement.accept(visitor: &self) }
 
 
+    public mutating func resolve(expression: Expression, depth: Int) throws
+    {
+        // FIXME:
+        // Expression is not Hashable and it would be a pain to make it conform,
+        // so I'm doing this to save time
+        withUnsafePointer(
+            to: expression,
+            { (ptr: UnsafePointer<Expression>) in self.locals[ptr] = depth } )
+    }
+
+
     // - MARK: Private
     mutating private func evaluate(expression: Expression) throws -> R { try expression.accept(visitor: &self) }
 
@@ -460,7 +484,27 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
+    private func look_up(variable_name name: Token, expression: Expression) throws -> Any?
+    {
+        guard let distance = withUnsafePointer(
+            to: expression,
+            { (ptr: UnsafePointer<Expression>) -> Int? in self.locals[ptr] } )
+        else
+        {
+            return try self.global_scope.get(name: name)
+        }
+
+        return try self.global_scope.get(at_distance: distance, name: name)
+    }
+
+
     private var current_scope: Environment
+
+    // FIXME:
+    // Expression is not Hashable and it would be a pain to make it conform,
+    // so I'm doing this to save time.
+    // Of course this won't work if there're copies of expressions.
+    private var locals: [UnsafePointer<Expression>: Int] = [:]
 }
 
 
@@ -474,6 +518,7 @@ enum RuntimeError: Error
     case UndefinedVariable(variable: Token)
     case UncallableCallee(line: Int)
     case MismatchingArity(line: Int, expected: Int, found: Int)
+    case LocalVariableNotFoundAtExpectedDepth(name: String, depth: Int)
 }
 
 

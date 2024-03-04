@@ -95,6 +95,17 @@ class Lox
             return;
         }
 
+        var resolver = Resolver(interpreter: Self.interpreter)
+        do
+        {
+            try resolver.resolve(statements: statements)
+        }
+        catch
+        {
+            fatalError("Resolver error. We should never get here!")
+        }
+
+
         Self.interpreter.interpret(statements: statements, repl_mode: repl_mode)
     }
 

@@ -37,6 +37,18 @@ class Environment
     }
 
 
+    public func assign(at_distance distance: Int, name: Token, value: Any?) throws
+    {
+        guard let scope = self.ancestor(with_distance: distance) else
+        {
+            throw RuntimeError.LocalVariableNotFoundAtExpectedDepth(
+                name: name.lexeme,
+                depth: distance)
+        }
+        scope.values[name.lexeme] = value
+    }
+
+
     public func get(name: Token) throws -> Any?
     {
         guard let optional_value = self.values[name.lexeme] else
@@ -55,6 +67,35 @@ class Environment
         }
 
         return value
+    }
+
+
+    public func get(at_distance distance: Int, name: Token) throws -> Any?
+    {
+        guard let scope = self.ancestor(with_distance: distance) else
+        {
+            throw RuntimeError.LocalVariableNotFoundAtExpectedDepth(
+                name: name.lexeme,
+                depth: distance)
+        }
+        guard let variable = scope.values[name.lexeme] else
+        {
+            throw RuntimeError.LocalVariableNotFoundAtExpectedDepth(
+                name: name.lexeme,
+                depth: distance)
+        }
+        return variable
+    }
+
+
+    public func ancestor(with_distance distance: Int) -> Environment?
+    {
+        var result: Environment? = self
+        for _ in 0..<distance where result != nil
+        {
+            result = result!.enclosing_scope
+        }
+        return result
     }
 
 
