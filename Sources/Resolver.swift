@@ -51,20 +51,93 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         return nil
     }
 
-    public func visit(_ binary: Binary) throws -> Any? { nil }
-    public func visit(_ call: Call) throws -> Any? { nil }
-    public func visit(_ grouping: Grouping) throws -> Any? { nil }
-    public func visit(_ literalexp: LiteralExp) throws -> Any? { nil    }
-    public func visit(_ logical: Logical) throws -> Any? { nil }
-    public func visit(_ unary: Unary) throws -> Any? { nil }
-    public func visit(_ ternary: Ternary) throws -> Any? { nil }
-    public func visit(_ funexpression: FunExpression) throws -> Any? { nil }
-    public func visit(_ expressionstatement: ExpressionStatement) throws -> Any? { nil }
-    public func visit(_ conditionalstatement: ConditionalStatement) throws -> Any? { nil }
-    public func visit(_ whilestatement: WhileStatement) throws -> Any? { nil }
-    public func visit(_ breakstatement: BreakStatement) throws -> Any? { nil }
-    public func visit(_ print: Print) throws -> Any? { nil }
-    public func visit(_ returnstatment: ReturnStatment) throws -> Any? { nil }
+    mutating public func visit(_ expressionstatement: ExpressionStatement) throws -> Any?
+    {
+        try self.resolve(expression: expressionstatement.expression)
+        return nil
+    }
+
+    mutating public func visit(_ conditionalstatement: ConditionalStatement) throws -> Any?
+    {
+        try self.resolve(expression: conditionalstatement.condition)
+        try self.resolve(statement: conditionalstatement.then_branch)
+        if let else_branch = conditionalstatement.else_branch
+        {
+            try self.resolve(statement:else_branch)
+        }
+        return nil
+    }
+
+    mutating public func visit(_ print: Print) throws -> Any?
+    {
+        try self.resolve(expression: print.expression)
+        return nil
+    }
+
+    mutating public func visit(_ returnstatment: ReturnStatment) throws -> Any?
+    {
+        if let e = returnstatment.value
+        {
+            try self.resolve(expression: e)
+        }
+        return nil
+    }
+
+    mutating public func visit(_ whilestatement: WhileStatement) throws -> Any?
+    {
+        try self.resolve(expression: whilestatement.condition)
+        try self.resolve(statement: whilestatement.body)
+        return nil
+    }
+
+
+    mutating public func visit(_ binary: Binary) throws -> Any?
+    {
+        try self.resolve(expression: binary.left)
+        try self.resolve(expression: binary.right)
+        return nil
+    }
+
+    mutating public func visit(_ call: Call) throws -> Any?
+    {
+        try self.resolve(expression: call.callee)
+        for e in call.arguments
+        {
+            try self.resolve(expression: e)
+        }
+        return nil
+    }
+
+    mutating public func visit(_ grouping: Grouping) throws -> Any?
+    {
+        try self.resolve(expression: grouping.expression)
+        return nil
+    }
+
+    mutating public func visit(_ logical: Logical) throws -> Any?
+    {
+        try self.resolve(expression: logical.left)
+        try self.resolve(expression: logical.right)
+        return nil
+    }
+
+    mutating public func visit(_ unary: Unary) throws -> Any?
+    {
+        try self.resolve(expression: unary.right)
+        return nil
+    }
+
+    mutating public func visit(_ ternary: Ternary) throws -> Any?
+    {
+        try self.resolve(expression: ternary.condition)
+        try self.resolve(expression: ternary.then_branch)
+        try self.resolve(expression: ternary.else_branch)
+        return nil
+    }
+
+    mutating public func visit(_ literalexp: LiteralExp) throws -> Any? { nil }
+    mutating public func visit(_ funexpression: FunExpression) throws -> Any? { nil }
+    mutating public func visit(_ breakstatement: BreakStatement) throws -> Any? { nil }
 
     // - MARK: Private
     private mutating func startScope()
