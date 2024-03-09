@@ -44,12 +44,22 @@ struct Resolver: ExpressionVisitor, StatementVisitor
 
     public mutating func visit(_ variable: Variable) throws -> Any?
     {
-        if !self.scopes.isEmpty && self.scopes[0][variable.name.lexeme] == false
+        if !self.scopes.isEmpty
         {
-            Lox.error(
-                line:variable.name.line,
-                message: "Variable \(variable.name.lexeme) accessed during its own initialization.")
+            if self.scopes[0][variable.name.lexeme] == nil
+            {
+                Lox.error(
+                    line:variable.name.line,
+                    message: "Undeclared variable \(variable.name.lexeme).")
+            }
+            else if self.scopes[0][variable.name.lexeme]!.status == .Declared
+            {
+                Lox.error(
+                    line:variable.name.line,
+                    message: "Variable \(variable.name.lexeme) accessed during its own initialization.")
+            }
         }
+
         self.resolve(local_expression: variable, with_name: variable.name.lexeme)
         return nil
     }
@@ -172,6 +182,15 @@ struct Resolver: ExpressionVisitor, StatementVisitor
     private mutating func endScope()
     {
         assert( !self.scopes.isEmpty )
+        for entry in self.scopes[0]
+        {
+            if entry.value.status != .Read
+            {
+                Lox.error(
+                    line: entry.value.name.line,
+                    message: "Local variable \(entry.value.name.lexeme) unused." )
+            }
+        }
         self.scopes.removeFirst()
     }
 
@@ -188,7 +207,7 @@ struct Resolver: ExpressionVisitor, StatementVisitor
                 line: name.line,
                 message: "Variable \(name.lexeme) is already defined in this scope.")
         }
-        self.scopes[0][name.lexeme] = false // We're not ready yet
+        self.scopes[0][name.lexeme] = ResolvedVariable( name: name, status: .Declared )
     }
 
     private mutating func define(_ name: String)
@@ -197,7 +216,10 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         {
             return
         }
-        self.scopes[0][name] = true // Done initializing
+        // Defining an undeclared variable should not be possible
+        assert( self.scopes[0][name] != nil )
+
+        self.scopes[0][name]!.status = .Defined
     }
 
     private mutating func resolve(statement: Statement) throws
@@ -216,6 +238,7 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         {
             if scope[name] != nil
             {
+                self.scopes[i][name]!.status = .Read
                 self.interpreter.resolve(expression: local_expression, depth: i)
             }
         }
@@ -241,7 +264,20 @@ struct Resolver: ExpressionVisitor, StatementVisitor
 
     // NOTE: Only for block scopes. Global scope is not tracked.
     // TODO: This is meant to be a STACK of Dictionaries. Make an actual Stack type
-    private var scopes: [[String: Bool]] = [[:]] // Name -> Have we finished resolving its initializer?
+    private var scopes: [[String: ResolvedVariable]] = [[:]] // Name -> Have we finished resolving its initializer?
     private var interpreter: Interpreter
     private var current_function: FunctionType? = nil
+
+    private struct ResolvedVariable
+    {
+        let name: Token
+        var status: Status
+
+        public enum Status: UInt8
+        {
+            case Declared = 0
+            case Defined = 1
+            case Read = 2
+        }
+    }
 }
