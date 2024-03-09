@@ -131,6 +131,7 @@ struct FunExpression: Expression
 {
 	let parameters: [Token]
 	let body: Block
+	let type: FunctionType
 
 	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
 	let uuid = UUID()

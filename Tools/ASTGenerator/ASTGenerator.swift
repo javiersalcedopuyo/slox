@@ -29,7 +29,7 @@ struct ASTGenerator
                     "Unary: Token op, Expression right",
                     "Ternary: Expression condition, Expression then_branch, Expression else_branch",
                     "Variable: Token name",
-                    "FunExpression: [Token] parameters, Block body"])
+                    "FunExpression: [Token] parameters, Block body, FunctionType type"])
 
             try define_AST(
                 output_directory: output_dir,

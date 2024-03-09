@@ -1,0 +1,9 @@
+// Return outside of function
+return 42;
+
+// Variable used in it's own initialization
+var a = a;
+
+// Variable redefinition
+var b = "foo";
+var b = "bar";

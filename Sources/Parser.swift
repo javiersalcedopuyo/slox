@@ -127,7 +127,7 @@ struct Parser
     }
 
 
-    private mutating func functionBody(of_type type: FunctionTypes) throws -> FunExpression
+    private mutating func functionBody(of_type type: FunctionType) throws -> FunExpression
     {
         let type_name = switch type
         {
@@ -170,11 +170,12 @@ struct Parser
 
         return FunExpression(
             parameters: parameters,
-            body: try self.blockStatement())
+            body: try self.blockStatement(),
+            type: type)
 
     }
 
-    private mutating func funDeclaration(of_type type: FunctionTypes) throws -> Statement
+    private mutating func funDeclaration(of_type type: FunctionType) throws -> Statement
     {
         let type_name = switch type
         {
@@ -759,7 +760,7 @@ enum ParserError : Error
 }
 
 
-enum FunctionTypes
+enum FunctionType
 {
     case Function
     case Method

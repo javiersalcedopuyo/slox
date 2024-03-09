@@ -102,7 +102,12 @@ class Lox
         }
         catch
         {
-            fatalError("Resolver error. We should never get here!")
+            fatalError("Unknown Resolver error. We should never get here! Error: \(error)")
+        }
+
+        if Self.had_error
+        {
+            return
         }
 
 

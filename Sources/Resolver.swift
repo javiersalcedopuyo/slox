@@ -1,7 +1,11 @@
-enum ResolverError : Error
-{
-    case VariableAccessDuringOwnInitialization(var_name: String)
-}
+// NOTE: We don't really throw errors because we want to continue resolving
+// and report all errors at once.
+// enum ResolverError : Error
+// {
+//     case VariableAccessDuringOwnInitialization(var_token: Token)
+//     case VariableRedefinition(var_token: Token)
+//     case ReturnFromOutsideFunction
+// }
 
 struct Resolver: ExpressionVisitor, StatementVisitor
 {
@@ -29,7 +33,7 @@ struct Resolver: ExpressionVisitor, StatementVisitor
 
     public mutating func visit(_ varstatement: VarStatement) throws -> Any?
     {
-        self.declare(varstatement.name.lexeme)
+        self.declare(varstatement.name)
         if let initializer = varstatement.initializer
         {
             try self.resolve(expression: initializer)
@@ -42,7 +46,9 @@ struct Resolver: ExpressionVisitor, StatementVisitor
     {
         if !self.scopes.isEmpty && self.scopes[0][variable.name.lexeme] == false
         {
-            throw ResolverError.VariableAccessDuringOwnInitialization(var_name: variable.name.lexeme)
+            Lox.error(
+                line:variable.name.line,
+                message: "Variable \(variable.name.lexeme) accessed during its own initialization.")
         }
         self.resolve(local_expression: variable, with_name: variable.name.lexeme)
         return nil
@@ -57,7 +63,7 @@ struct Resolver: ExpressionVisitor, StatementVisitor
 
     public mutating func visit(_ funstatement: FunStatement) throws -> Any?
     {
-        self.declare(funstatement.name.lexeme)
+        self.declare(funstatement.name)
         self.define(funstatement.name.lexeme)
         try self.resolve(function: funstatement.function)
         return nil
@@ -88,6 +94,12 @@ struct Resolver: ExpressionVisitor, StatementVisitor
 
     mutating public func visit(_ returnstatment: ReturnStatment) throws -> Any?
     {
+        if self.current_function == nil
+        {
+            // TODO: Report the line
+            Lox.error(line: -1, message: "Return statement outside of function.")
+        }
+
         if let e = returnstatment.value
         {
             try self.resolve(expression: e)
@@ -163,13 +175,20 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         self.scopes.removeFirst()
     }
 
-    private mutating func declare(_ name: String)
+    private mutating func declare(_ name: Token)
     {
         if self.scopes.isEmpty
         {
             return
         }
-        self.scopes[0][name] = false // We're not ready yet
+        if self.scopes[0][name.lexeme] != nil
+        {
+            // TODO: Report where it was defined?
+            Lox.error(
+                line: name.line,
+                message: "Variable \(name.lexeme) is already defined in this scope.")
+        }
+        self.scopes[0][name.lexeme] = false // We're not ready yet
     }
 
     private mutating func define(_ name: String)
@@ -204,12 +223,17 @@ struct Resolver: ExpressionVisitor, StatementVisitor
 
     private mutating func resolve(function: FunExpression) throws
     {
+        let enclosing_function = self.current_function
+        defer{ self.current_function = enclosing_function }
+
+        self.current_function = function.type
+
         self.startScope()
         defer{ self.endScope() }
 
         for parameter in function.parameters
         {
-            self.declare(parameter.lexeme)
+            self.declare(parameter)
             self.define(parameter.lexeme)
         }
         try self.resolve(statements: function.body.statements)
@@ -219,4 +243,5 @@ struct Resolver: ExpressionVisitor, StatementVisitor
     // TODO: This is meant to be a STACK of Dictionaries. Make an actual Stack type
     private var scopes: [[String: Bool]] = [[:]] // Name -> Have we finished resolving its initializer?
     private var interpreter: Interpreter
+    private var current_function: FunctionType? = nil
 }
