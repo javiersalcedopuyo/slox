@@ -44,14 +44,14 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         {
             throw ResolverError.VariableAccessDuringOwnInitialization(var_name: variable.name.lexeme)
         }
-        try self.resolve(local_expression: variable, with_name: variable.name.lexeme)
+        self.resolve(local_expression: variable, with_name: variable.name.lexeme)
         return nil
     }
 
     public mutating func visit(_ assignment: Assignment) throws -> Any?
     {
         try self.resolve(expression: assignment.value)
-        try self.resolve(local_expression: assignment, with_name: assignment.name.lexeme)
+        self.resolve(local_expression: assignment, with_name: assignment.name.lexeme)
         return nil
     }
 
@@ -191,13 +191,13 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         _ = try expression.accept(visitor: &self)
     }
 
-    private mutating func resolve(local_expression: Expression, with_name name: String) throws
+    private mutating func resolve(local_expression: Expression, with_name name: String)
     {
         for (i, scope) in self.scopes.enumerated()
         {
             if scope[name] != nil
             {
-                try self.interpreter.resolve(expression: local_expression, depth: i)
+                self.interpreter.resolve(expression: local_expression, depth: i)
             }
         }
     }

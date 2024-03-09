@@ -1,3 +1,5 @@
+import Foundation
+
 protocol StatementVisitor
 {
 	associatedtype R
@@ -18,6 +20,7 @@ protocol StatementVisitor
 protocol Statement
 {
 	func accept<R, V: StatementVisitor>(visitor: inout V) throws -> R where V.R == R
+	var uuid: UUID {get}
 }
 
 
@@ -27,6 +30,7 @@ struct Block: Statement
 	let statements: [Statement]
 
 	func accept<R, V: StatementVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
 }
 
 
@@ -36,6 +40,7 @@ struct ExpressionStatement: Statement
 	let expression: Expression
 
 	func accept<R, V: StatementVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
 }
 
 
@@ -47,6 +52,7 @@ struct ConditionalStatement: Statement
 	let else_branch: Statement?
 
 	func accept<R, V: StatementVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
 }
 
 
@@ -57,6 +63,7 @@ struct FunStatement: Statement
 	let function: FunExpression
 
 	func accept<R, V: StatementVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
 }
 
 
@@ -67,6 +74,7 @@ struct WhileStatement: Statement
 	let body: Statement
 
 	func accept<R, V: StatementVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
 }
 
 
@@ -74,6 +82,7 @@ struct WhileStatement: Statement
 struct BreakStatement: Statement
 {
 	func accept<R, V: StatementVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
 }
 
 
@@ -83,6 +92,7 @@ struct Print: Statement
 	let expression: Expression
 
 	func accept<R, V: StatementVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
 }
 
 
@@ -93,6 +103,7 @@ struct VarStatement: Statement
 	let initializer: Expression?
 
 	func accept<R, V: StatementVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
 }
 
 
@@ -103,4 +114,5 @@ struct ReturnStatment: Statement
 	let value: Expression?
 
 	func accept<R, V: StatementVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
 }

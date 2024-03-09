@@ -67,12 +67,15 @@ throws
 
     let output_url = URL(fileURLWithPath: output_path)
 
-    var output = define_visitor(base_name: base_name, types: types)
+    var output = "import Foundation\n\n"
+
+    output += define_visitor(base_name: base_name, types: types)
     output += "\n\n\n"
 
     output += "protocol " + base_name + "\n"
     output += "{\n"
     output += "\tfunc accept<R, V: \(base_name)Visitor>(visitor: inout V) throws -> R where V.R == R\n"
+    output += "\tvar uuid: UUID {get}\n"
     output += "}\n"
 
     for type in types
@@ -146,6 +149,7 @@ func parse_sub_type(base_name: String, descriptor: String) -> String
         output += "\n"
     }
     output += "\tfunc accept<R, V: \(base_name)Visitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }\n"
+    output += "\tlet uuid = UUID()\n"
 
     output += "}\n"
     return output

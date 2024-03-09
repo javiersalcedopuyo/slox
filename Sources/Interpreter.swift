@@ -87,9 +87,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     {
         let value = try self.evaluate(expression: assignment.value)
 
-        if let distance = withUnsafePointer(
-            to: assignment,
-            { (ptr: UnsafePointer<Expression>) -> Int? in self.locals[ptr] } )
+        if let distance = self.locals[assignment.uuid]
         {
             try self.current_scope.assign(
                 at_distance: distance,
@@ -400,15 +398,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     mutating public func execute(statement: Statement) throws { try _ = statement.accept(visitor: &self) }
 
 
-    public mutating func resolve(expression: Expression, depth: Int) throws
-    {
-        // FIXME:
-        // Expression is not Hashable and it would be a pain to make it conform,
-        // so I'm doing this to save time
-        withUnsafePointer(
-            to: expression,
-            { (ptr: UnsafePointer<Expression>) in self.locals[ptr] = depth } )
-    }
+    mutating public func resolve(expression: Expression, depth: Int) { self.locals[expression.uuid] = depth }
 
 
     // - MARK: Private
@@ -486,10 +476,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
 
     private func look_up(variable_name name: Token, expression: Expression) throws -> Any?
     {
-        guard let distance = withUnsafePointer(
-            to: expression,
-            { (ptr: UnsafePointer<Expression>) -> Int? in self.locals[ptr] } )
-        else
+        guard let distance = self.locals[expression.uuid] else
         {
             return try self.global_scope.get(name: name)
         }
@@ -504,7 +491,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     // Expression is not Hashable and it would be a pain to make it conform,
     // so I'm doing this to save time.
     // Of course this won't work if there're copies of expressions.
-    private var locals: [UnsafePointer<Expression>: Int] = [:]
+    private var locals: [UUID: Int] = [:]
 }
 
 

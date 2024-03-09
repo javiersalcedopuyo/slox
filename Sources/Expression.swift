@@ -1,3 +1,5 @@
+import Foundation
+
 protocol ExpressionVisitor
 {
 	associatedtype R
@@ -19,6 +21,7 @@ protocol ExpressionVisitor
 protocol Expression
 {
 	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R
+	var uuid: UUID {get}
 }
 
 
@@ -30,6 +33,7 @@ struct Assignment: Expression
 	let value: Expression
 
 	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
 }
 
 
@@ -41,6 +45,7 @@ struct Binary: Expression
 	let right: Expression
 
 	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
 }
 
 
@@ -52,6 +57,7 @@ struct Call: Expression
 	let arguments: [Expression]
 
 	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
 }
 
 
@@ -61,6 +67,7 @@ struct Grouping: Expression
 	let expression: Expression
 
 	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
 }
 
 
@@ -70,6 +77,7 @@ struct LiteralExp: Expression
 	let value: Literal?
 
 	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
 }
 
 
@@ -81,6 +89,7 @@ struct Logical: Expression
 	let right: Expression
 
 	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
 }
 
 
@@ -91,6 +100,7 @@ struct Unary: Expression
 	let right: Expression
 
 	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
 }
 
 
@@ -102,6 +112,7 @@ struct Ternary: Expression
 	let else_branch: Expression
 
 	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
 }
 
 
@@ -111,6 +122,7 @@ struct Variable: Expression
 	let name: Token
 
 	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
 }
 
 
@@ -121,4 +133,5 @@ struct FunExpression: Expression
 	let body: Block
 
 	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
 }
