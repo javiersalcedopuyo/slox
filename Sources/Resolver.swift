@@ -71,6 +71,13 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         return nil
     }
 
+    public mutating func visit(_ classdeclaration: ClassDeclaration) throws -> Any?
+    {
+        self.declare(classdeclaration.name)
+        self.define(classdeclaration.name.lexeme)
+        return nil
+    }
+
     public mutating func visit(_ funstatement: FunStatement) throws -> Any?
     {
         self.declare(funstatement.name)

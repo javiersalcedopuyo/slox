@@ -13,6 +13,7 @@ protocol StatementVisitor
 	mutating func visit(_ print: Print) throws -> R
 	mutating func visit(_ varstatement: VarStatement) throws -> R
 	mutating func visit(_ returnstatment: ReturnStatment) throws -> R
+	mutating func visit(_ classdeclaration: ClassDeclaration) throws -> R
 }
 
 
@@ -112,6 +113,17 @@ struct ReturnStatment: Statement
 {
 	let keyword: Token
 	let value: Expression?
+
+	func accept<R, V: StatementVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
+}
+
+
+
+struct ClassDeclaration: Statement
+{
+	let name: Token
+	let methods: [FunStatement]
 
 	func accept<R, V: StatementVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
 	let uuid = UUID()

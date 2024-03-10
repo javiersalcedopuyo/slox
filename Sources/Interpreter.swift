@@ -308,6 +308,15 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
+    public mutating func visit(_ classdeclaration: ClassDeclaration) throws -> Any?
+    {
+        self.current_scope.define(name: classdeclaration.name.lexeme, value: nil)
+        let lox_class = LoxClass(name: classdeclaration.name.lexeme)
+        try self.current_scope.assign(name: classdeclaration.name, value: lox_class)
+        return nil
+    }
+
+
     public mutating func visit(_ funstatement: FunStatement) throws -> Any?
     {
         let function = Function(declaration: funstatement.function, closure: self.current_scope)

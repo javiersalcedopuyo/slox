@@ -1,10 +1,11 @@
 // GRAMMAR: ////////////////////////////////////////////////////////////////////////////////////////
 // program      -> statement* EOF ;
-// declaration  -> funDecl | varDecl | statement ;
+// declaration  -> funDecl | varDecl | statement | classDecl;
 // funDecl      -> "fun" function;
 // function     -> IDENTIFIER "(" parameters? ")" block;
 // parameters   -> IDENTIFIER ( "," IDENTIFIER )* ;
 // varDecl      -> "var" IDENTIFIER ( "=" expression )? ";" ;
+// classDecl    -> "class" IDENTIFIER "{" function* "}";
 // statement    -> exprStmt | printStmt | ifStmt | block | whileStmt | forStmt | returnStmt;
 // returnStmt   -> "return" expression? ";";
 // whileStmt    -> "while" "("expression")" statement;
@@ -84,6 +85,11 @@ struct Parser
             if self.match_and_advance(tokens: .VAR)
             {
                 return try self.varDeclaration()
+            }
+            if self.check_current_token(of_type: .CLASS)
+            {
+                try _ = self.consume(token_type: .CLASS, message: "This should never happen")
+                return try self.classDeclaration()
             }
             return try self.statement()
         }
@@ -174,6 +180,24 @@ struct Parser
             type: type)
 
     }
+
+
+    private mutating func classDeclaration() throws -> Statement
+    {
+        let name = try self.consume(token_type: .IDENTIFIER, message: "Expected class name." )
+        _ = try self.consume(token_type: .LEFT_BRACE, message: "Expected `{` after class declaration.")
+
+        var methods: [FunStatement] = []
+        while !self.check_current_token(of_type: .RIGHT_BRACE) && !self.is_at_end()
+        {
+            methods.append( try self.funDeclaration(of_type: .Method) as! FunStatement )
+        }
+
+        _ = try self.consume(token_type: .LEFT_BRACE, message: "Expected `}` after class body.")
+
+        return ClassDeclaration(name: name, methods: [])
+    }
+
 
     private mutating func funDeclaration(of_type type: FunctionType) throws -> Statement
     {
