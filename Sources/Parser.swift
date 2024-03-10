@@ -193,7 +193,7 @@ struct Parser
             methods.append( try self.funDeclaration(of_type: .Method) as! FunStatement )
         }
 
-        _ = try self.consume(token_type: .LEFT_BRACE, message: "Expected `}` after class body.")
+        _ = try self.consume(token_type: .RIGHT_BRACE, message: "Expected `}` after class body.")
 
         return ClassDeclaration(name: name, methods: [])
     }

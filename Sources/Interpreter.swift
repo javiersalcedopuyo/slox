@@ -478,6 +478,10 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
         {
             return obj ? "true" : "false"
         }
+        else if let obj = obj as? LoxClass
+        {
+            return obj.name
+        }
 
         throw RuntimeError.ObjectNonConvertibleToString
     }
