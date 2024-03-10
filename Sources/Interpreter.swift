@@ -481,16 +481,12 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
             return try self.global_scope.get(name: name)
         }
 
-        return try self.global_scope.get(at_distance: distance, name: name)
+        return try self.current_scope.get(at_distance: distance, name: name)
     }
 
 
     private var current_scope: Environment
 
-    // FIXME:
-    // Expression is not Hashable and it would be a pain to make it conform,
-    // so I'm doing this to save time.
-    // Of course this won't work if there're copies of expressions.
     private var locals: [UUID: Int] = [:]
 }
 
