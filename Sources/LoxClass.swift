@@ -5,6 +5,6 @@ struct LoxClass: Callable
 
     public func call(interpreter: inout Interpreter, arguments: [Any?]) throws -> Any?
     {
-        return Self(name: self.name)
+        return LoxInstance(class: self)
     }
 }

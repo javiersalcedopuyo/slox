@@ -482,6 +482,10 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
         {
             return obj.name
         }
+        else if let obj = obj as? LoxInstance
+        {
+            return obj.get_type_name()
+        }
 
         throw RuntimeError.ObjectNonConvertibleToString
     }
