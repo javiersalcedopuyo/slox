@@ -70,6 +70,14 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
                     "❌ RUNTIME ERROR: "
                     + "Function called expected \(expected) arguments but \(found) were provided.")
         }
+        catch RuntimeError.PropertyGetterUsedOnNonInstance(let line)
+        {
+            Lox.runtimeError(line: line, message: "❌ RUNTIME ERROR: Property getter used on a non instance.")
+        }
+        catch RuntimeError.UndefinedProperty(let property)
+        {
+            Lox.runtimeError(line: property.line, message: "❌ RUNTIME ERROR: Undefined property \(property.lexeme)" )
+        }
         catch FlowBreakers.Break, FlowBreakers.Continue
         {
             fatalError(
@@ -273,6 +281,18 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
 
         return try function.call(interpreter: &self, arguments: arguments)
     }
+
+    
+    public mutating func visit(_ getter: Getter) throws -> Any?
+    {
+        let obj = try self.evaluate(expression: getter.obj)
+        if let obj = obj as? LoxInstance
+        {
+            return try obj.get(getter.name)
+        }
+        throw RuntimeError.PropertyGetterUsedOnNonInstance(line: getter.name.line)
+    }
+
 
     public mutating func visit(_ function: FunExpression) throws -> R
     {
@@ -516,9 +536,11 @@ enum RuntimeError: Error
     case ObjectNonConvertibleToString
     case UndeclaredVariable(variable: Token)
     case UndefinedVariable(variable: Token)
+    case UndefinedProperty(property: Token)
     case UncallableCallee(line: Int)
     case MismatchingArity(line: Int, expected: Int, found: Int)
     case LocalVariableNotFoundAtExpectedDepth(name: String, depth: Int)
+    case PropertyGetterUsedOnNonInstance(line: Int)
 }
 
 

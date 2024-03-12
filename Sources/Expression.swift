@@ -7,6 +7,7 @@ protocol ExpressionVisitor
 	mutating func visit(_ assignment: Assignment) throws -> R
 	mutating func visit(_ binary: Binary) throws -> R
 	mutating func visit(_ call: Call) throws -> R
+	mutating func visit(_ getter: Getter) throws -> R
 	mutating func visit(_ grouping: Grouping) throws -> R
 	mutating func visit(_ literalexp: LiteralExp) throws -> R
 	mutating func visit(_ logical: Logical) throws -> R
@@ -55,6 +56,17 @@ struct Call: Expression
 	let callee: Expression
 	let parenthesis: Token
 	let arguments: [Expression]
+
+	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
+}
+
+
+
+struct Getter: Expression
+{
+	let obj: Expression
+	let name: Token
 
 	func accept<R, V: ExpressionVisitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }
 	let uuid = UUID()

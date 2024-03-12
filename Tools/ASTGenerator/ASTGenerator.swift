@@ -23,6 +23,7 @@ struct ASTGenerator
                     "Assignment: Token name, Expression value",
                     "Binary: Expression left, Token op, Expression right",
                     "Call: Expression callee, Token parenthesis, [Expression] arguments",
+                    "Getter: Expression obj, Token name",
                     "Grouping: Expression expression",
                     "LiteralExp: Literal? value",
                     "Logical: Expression left, Token op, Expression right",

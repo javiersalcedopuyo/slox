@@ -29,7 +29,7 @@
 // term         -> factor ( ( "-" | "+" ) factor )* ;
 // factor       -> unary ( ( "/" | "*" ) unary )* ;
 // unary        -> ( "!" | "-" ) unary | call ;
-// call         -> primary ( "(" arguments? ")" )*;
+// call         -> primary ( "(" arguments? ")" | "." IDENTIFIER )*;
 // arguments    -> expression ( "," expression )*;
 // primary      -> NUMBER | STRING
 //                  | "true" | "false" | "nil"
@@ -558,6 +558,14 @@ struct Parser
             if self.match_and_advance(tokens: .LEFT_PARENTHESIS)
             {
                 expression = try self.finishCall(callee: expression)
+            }
+            else if self.match_and_advance(tokens: .DOT)
+            {
+                let name = try self.consume(
+                    token_type: .IDENTIFIER,
+                    message: "Expected property name after `.`" )
+
+                expression = Getter(obj: expression, name: name) 
             }
             else
             {

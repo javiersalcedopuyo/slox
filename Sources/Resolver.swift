@@ -149,6 +149,13 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         return nil
     }
 
+    public mutating func visit(_ getter: Getter) throws -> Any?
+    {
+        try self.resolve(expression: getter.obj)
+        // NOTE: Because properties are looked up dynamically, they don't get resolved
+        return nil
+    }
+
     mutating public func visit(_ grouping: Grouping) throws -> Any?
     {
         try self.resolve(expression: grouping.expression)
