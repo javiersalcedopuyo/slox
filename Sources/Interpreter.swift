@@ -351,7 +351,19 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     public mutating func visit(_ classdeclaration: ClassDeclaration) throws -> Any?
     {
         self.current_scope.define(name: classdeclaration.name.lexeme, value: nil)
-        let lox_class = LoxClass(name: classdeclaration.name.lexeme)
+
+        var methods: [String: Function] = [:]
+        for method in classdeclaration.methods
+        {
+            methods[method.name.lexeme] = Function(
+                declaration: method.function,
+                closure: self.current_scope)
+        }
+
+        let lox_class = LoxClass(
+            name: classdeclaration.name.lexeme,
+            methods: methods)
+
         try self.current_scope.assign(name: classdeclaration.name, value: lox_class)
         return nil
     }

@@ -75,6 +75,13 @@ struct Resolver: ExpressionVisitor, StatementVisitor
     {
         self.declare(classdeclaration.name)
         self.define(classdeclaration.name.lexeme)
+
+        for method in classdeclaration.methods
+        {
+            assert(method.function.type == .Method);
+            try self.resolve(function: method.function)
+        }
+
         return nil
     }
 

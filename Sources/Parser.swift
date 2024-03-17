@@ -195,7 +195,7 @@ struct Parser
 
         _ = try self.consume(token_type: .RIGHT_BRACE, message: "Expected `}` after class body.")
 
-        return ClassDeclaration(name: name, methods: [])
+        return ClassDeclaration(name: name, methods: methods)
     }
 
 

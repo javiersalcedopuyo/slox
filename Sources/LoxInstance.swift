@@ -7,11 +7,16 @@ class LoxInstance
 
     public func get(_ name: Token) throws -> Any
     {
-        guard let r = self.fields[name.lexeme] else
+        // NOTE: Fields shadow methods!
+        if let r = self.fields[name.lexeme]
         {
-            throw RuntimeError.UndefinedProperty(property: name)
+            return r
         }
-        return r
+        else if let m = self.lox_class.methods[name.lexeme]
+        {
+            return m
+        }
+        throw RuntimeError.UndefinedProperty(property: name)
     }
 
     public func set(property: Token, value: Any?)

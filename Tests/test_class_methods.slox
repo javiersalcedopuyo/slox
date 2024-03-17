@@ -1,0 +1,10 @@
+class Foo
+{
+	bar()
+	{
+		print "Hello World!";
+	}
+}
+
+var foo = Foo();
+foo.bar();
