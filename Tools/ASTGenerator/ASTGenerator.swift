@@ -27,6 +27,7 @@ struct ASTGenerator
                     "Grouping: Expression expression",
                     "LiteralExp: Literal? value",
                     "Logical: Expression left, Token op, Expression right",
+                    "Setter: Expression obj, Token property, Expression value",
                     "Unary: Token op, Expression right",
                     "Ternary: Expression condition, Expression then_branch, Expression else_branch",
                     "Variable: Token name",

@@ -19,7 +19,7 @@
 // printStmt    -> "print" expression ";" ;
 // ifStmt       -> "if" "(" expression ")" statement ( "else" statement )?;
 // expression   -> assignment ;
-// assignment   -> IDENTIFIER "=" assignment
+// assignment   -> ( call "." )? IDENTIFIER "=" assignment
 //                  | ternary ;
 // ternary      -> logic_or ( "?" ternary ":" ternary )?
 // logic_or     -> logic_and ( "or" logic_and)*;
@@ -424,13 +424,22 @@ struct Parser
 
         if self.match_and_advance(tokens: .EQUAL)
         {
-            guard let expr = expression as? Variable else
+            if let expr = expression as? Variable
+            {
+                return Assignment(name: expr.name, value: try self.assignment())
+            }
+            else if let getter = expression as? Getter
+            {
+                return Setter(
+                    obj: getter.obj,
+                    property: getter.name,
+                    value: try self.assignment())
+            }
+            else
             {
                 throw ParserError.InvalidAssignmentTarget(line: self.previous().line)
             }
-            return Assignment(name: expr.name, value: try self.assignment())
         }
-
         return expression
     }
 

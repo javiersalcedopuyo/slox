@@ -74,6 +74,10 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
         {
             Lox.runtimeError(line: line, message: "❌ RUNTIME ERROR: Property getter used on a non instance.")
         }
+        catch RuntimeError.PropertySetterUsedOnNonInstance(let line)
+        {
+            Lox.runtimeError(line: line, message: "❌ RUNTIME ERROR: Property setter used on a non instance.")
+        }
         catch RuntimeError.UndefinedProperty(let property)
         {
             Lox.runtimeError(line: property.line, message: "❌ RUNTIME ERROR: Undefined property \(property.lexeme)" )
@@ -291,6 +295,22 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
             return try obj.get(getter.name)
         }
         throw RuntimeError.PropertyGetterUsedOnNonInstance(line: getter.name.line)
+    }
+
+
+    public mutating func visit(_ setter: Setter) throws -> Any?
+    {
+        let obj = try self.evaluate(expression: setter.obj)
+        guard let instance = obj as? LoxInstance else
+        {
+            throw RuntimeError.PropertySetterUsedOnNonInstance(line: setter.property.line)
+        }
+
+        let value = try self.evaluate(expression: setter.value)
+
+        instance.set(property: setter.property, value: value)
+
+        return value
     }
 
 
@@ -541,6 +561,7 @@ enum RuntimeError: Error
     case MismatchingArity(line: Int, expected: Int, found: Int)
     case LocalVariableNotFoundAtExpectedDepth(name: String, depth: Int)
     case PropertyGetterUsedOnNonInstance(line: Int)
+    case PropertySetterUsedOnNonInstance(line: Int)
 }
 
 

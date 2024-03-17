@@ -156,6 +156,13 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         return nil
     }
 
+    public mutating func visit(_ setter: Setter) throws -> Any?
+    {
+        try self.resolve(expression: setter.value)
+        try self.resolve(expression: setter.obj)
+        return nil
+    }
+
     mutating public func visit(_ grouping: Grouping) throws -> Any?
     {
         try self.resolve(expression: grouping.expression)

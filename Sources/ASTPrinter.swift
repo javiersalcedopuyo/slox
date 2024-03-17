@@ -131,6 +131,17 @@ struct ASTPrinter : ExpressionVisitor
 
 
 
+    /// "Prettyfies" a `Setter` expression
+    /// - Parameter setter: The expression to transform
+    /// - Returns: The "prettyfied" expression
+    public func visit(_ setter: Setter) -> String
+    {
+        // TODO:
+        setter.property.lexeme
+    }
+
+
+
     /// "Prettyfies" a `Function` expression
     /// - Parameter call: The expression to transform
     /// - Returns: The "prettyfied" expression
@@ -290,6 +301,17 @@ struct ASTPrinterReversePolishNotation: ExpressionVisitor
     {
         // TODO:
         getter.name.lexeme
+    }
+
+
+
+    /// "Prettyfies" n `Setter` expression
+    /// - Parameter setter: The expression to transform
+    /// - Returns: The "prettyfied" expression
+    public func visit(_ setter: Setter) -> String
+    {
+        // TODO:
+        setter.property.lexeme
     }
 
 
