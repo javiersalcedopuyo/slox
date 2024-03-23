@@ -1,6 +1,6 @@
 import Foundation
 
-struct Interpreter: ExpressionVisitor, StatementVisitor
+class Interpreter: ExpressionVisitor, StatementVisitor
 {
     typealias R = Any?
 
@@ -15,7 +15,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
     // - MARK: Public
-    mutating public func interpret(statements: [Statement], repl_mode: Bool)
+    public func interpret(statements: [Statement], repl_mode: Bool)
     {
         do
         {
@@ -95,7 +95,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    public mutating func visit(_ assignment: Assignment) throws -> R
+    public func visit(_ assignment: Assignment) throws -> R
     {
         let value = try self.evaluate(expression: assignment.value)
 
@@ -114,7 +114,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-	public mutating func visit(_ literalexp: LiteralExp) -> R
+	public func visit(_ literalexp: LiteralExp) -> R
     {
         assert( literalexp.value != nil )
         switch literalexp.value
@@ -134,13 +134,13 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-	public mutating func visit(_ grouping: Grouping) throws -> R
+	public func visit(_ grouping: Grouping) throws -> R
     {
         try self.evaluate(expression: grouping.expression)
     }
 
 
-	public mutating func visit(_ unary: Unary) throws -> R
+	public func visit(_ unary: Unary) throws -> R
     {
         let right = try self.evaluate(expression: unary.right)
 
@@ -157,7 +157,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-	public mutating func visit(_ binary: Binary) throws -> R
+	public func visit(_ binary: Binary) throws -> R
     {
         let left  = try self.evaluate(expression: binary.left)
         let right = try self.evaluate(expression: binary.right)
@@ -212,7 +212,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-	public mutating func visit(_ ternary: Ternary) throws -> R
+	public func visit(_ ternary: Ternary) throws -> R
     {
         let condition = try self.evaluate(expression: ternary.condition)
         if Self.isTruthful(condition)
@@ -226,7 +226,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    public mutating func visit(_ logical: Logical) throws -> Any?
+    public func visit(_ logical: Logical) throws -> Any?
     {
         let left = try self.evaluate(expression: logical.left)
         let is_left_true = Self.isTruthful(left)
@@ -260,7 +260,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    public mutating func visit(_ call: Call) throws -> Any?
+    public func visit(_ call: Call) throws -> Any?
     {
         let callee = try self.evaluate(expression: call.callee)
 
@@ -283,11 +283,11 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
                 found: arguments.count)
         }
 
-        return try function.call(interpreter: &self, arguments: arguments)
+        return try function.call(interpreter: self, arguments: arguments)
     }
 
     
-    public mutating func visit(_ getter: Getter) throws -> Any?
+    public func visit(_ getter: Getter) throws -> Any?
     {
         let obj = try self.evaluate(expression: getter.obj)
         if let obj = obj as? LoxInstance
@@ -298,7 +298,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    public mutating func visit(_ setter: Setter) throws -> Any?
+    public func visit(_ setter: Setter) throws -> Any?
     {
         let obj = try self.evaluate(expression: setter.obj)
         guard let instance = obj as? LoxInstance else
@@ -314,20 +314,20 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    public mutating func visit(_ function: FunExpression) throws -> R
+    public func visit(_ function: FunExpression) throws -> R
     {
         return Function(declaration: function, closure: self.current_scope)
     }
 
 
-    public mutating func visit(_ statement: ExpressionStatement) throws -> R
+    public func visit(_ statement: ExpressionStatement) throws -> R
     {
         _ = try self.evaluate(expression: statement.expression)
         return nil
     }
 
 
-    public mutating func visit(_ statement: Print) throws -> R
+    public func visit(_ statement: Print) throws -> R
     {
         let value = try self.evaluate(expression: statement.expression)
         print( try Self.stringify(value) )
@@ -335,7 +335,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    public mutating func visit(_ variable: VarStatement) throws -> R
+    public func visit(_ variable: VarStatement) throws -> R
     {
         var value = Optional<Any>.none // So the dictionary in `Environment` still considers it a valid entry
         if let initializer = variable.initializer
@@ -348,7 +348,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    public mutating func visit(_ classdeclaration: ClassDeclaration) throws -> Any?
+    public func visit(_ classdeclaration: ClassDeclaration) throws -> Any?
     {
         self.current_scope.define(name: classdeclaration.name.lexeme, value: nil)
 
@@ -369,7 +369,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    public mutating func visit(_ funstatement: FunStatement) throws -> Any?
+    public func visit(_ funstatement: FunStatement) throws -> Any?
     {
         let function = Function(declaration: funstatement.function, closure: self.current_scope)
         self.current_scope.define(name: funstatement.name.lexeme, value: function)
@@ -377,7 +377,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    public mutating func visit(_ block: Block) throws -> R
+    public func visit(_ block: Block) throws -> R
     {
         try self.execute(
             block: block,
@@ -385,7 +385,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    public mutating func visit(_ whilestatement: WhileStatement) throws -> Any?
+    public func visit(_ whilestatement: WhileStatement) throws -> Any?
     {
         while Self.isTruthful( try self.evaluate(expression: whilestatement.condition) )
         {
@@ -407,7 +407,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    public mutating func visit(_ conditionalstatement: ConditionalStatement) throws -> R
+    public func visit(_ conditionalstatement: ConditionalStatement) throws -> R
     {
         if Self.isTruthful( try self.evaluate(expression: conditionalstatement.condition) )
         {
@@ -421,19 +421,19 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    public mutating func visit(_ variable: Variable) throws -> R
+    public func visit(_ variable: Variable) throws -> R
     {
         try self.current_scope.get(name: variable.name)
     }
 
 
-    public mutating func visit(_ breakstatement: BreakStatement) throws -> Any?
+    public func visit(_ breakstatement: BreakStatement) throws -> Any?
     {
         throw FlowBreakers.Break
     }
 
 
-    public mutating func visit(_ returnstatment: ReturnStatment) throws -> Any?
+    public func visit(_ returnstatment: ReturnStatment) throws -> Any?
     {
         let value = returnstatment.value != nil
             ? try self.evaluate(expression: returnstatment.value!)
@@ -443,7 +443,7 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    mutating public func execute(block: Block, environment scope: Environment) throws
+    public func execute(block: Block, environment scope: Environment) throws
     {
         let previous_environment = self.current_scope
         defer { self.current_scope = previous_environment }
@@ -456,14 +456,14 @@ struct Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
-    mutating public func execute(statement: Statement) throws { try _ = statement.accept(visitor: &self) }
+    public func execute(statement: Statement) throws { try _ = statement.accept(visitor: self) }
 
 
-    mutating public func resolve(expression: Expression, depth: Int) { self.locals[expression.uuid] = depth }
+    public func resolve(expression: Expression, depth: Int) { self.locals[expression.uuid] = depth }
 
 
     // - MARK: Private
-    mutating private func evaluate(expression: Expression) throws -> R { try expression.accept(visitor: &self) }
+    private func evaluate(expression: Expression) throws -> R { try expression.accept(visitor: self) }
 
 
     private static func areEqual(_ a: Any?, _ b: Any?) -> Bool { a as? NSObject == b as? NSObject }

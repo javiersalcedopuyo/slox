@@ -77,7 +77,7 @@ throws
 
     output += "protocol " + base_name + "\n"
     output += "{\n"
-    output += "\tfunc accept<R, V: \(base_name)Visitor>(visitor: inout V) throws -> R where V.R == R\n"
+    output += "\tfunc accept<R, V: \(base_name)Visitor>(visitor: V) throws -> R where V.R == R\n"
     output += "\tvar uuid: UUID {get}\n"
     output += "}\n"
 
@@ -107,7 +107,7 @@ func define_visitor(base_name: String, types: [String]) -> String
             .split(separator: ":")[0]
             .trimmingCharacters(in: .whitespaces)
 
-        output += "\tmutating func visit(_ \(type_name.lowercased()): \(type_name)) throws -> R\n"
+        output += "\t func visit(_ \(type_name.lowercased()): \(type_name)) throws -> R\n"
     }
 
     output += "}\n"
@@ -151,7 +151,7 @@ func parse_sub_type(base_name: String, descriptor: String) -> String
         }
         output += "\n"
     }
-    output += "\tfunc accept<R, V: \(base_name)Visitor>(visitor: inout V) throws -> R where V.R == R { try visitor.visit(self) }\n"
+    output += "\tfunc accept<R, V: \(base_name)Visitor>(visitor: V) throws -> R where V.R == R { try visitor.visit(self) }\n"
     output += "\tlet uuid = UUID()\n"
 
     output += "}\n"

@@ -4,7 +4,7 @@ import Foundation
 protocol Callable
 {
     var arity: Int {get}
-    func call(interpreter: inout Interpreter, arguments: [Any?]) throws -> Any?
+    func call(interpreter: Interpreter, arguments: [Any?]) throws -> Any?
 }
 
 
@@ -20,7 +20,7 @@ struct Function: Callable
         self.closure = closure
     }
 
-    public func call(interpreter: inout Interpreter, arguments: [Any?]) throws -> Any?
+    public func call(interpreter: Interpreter, arguments: [Any?]) throws -> Any?
     {
         assert( self.declaration.parameters.count == arguments.count )
 
@@ -57,7 +57,7 @@ struct ClockPrimitive: Callable
 {
     let arity = 0
 
-    public func call(interpreter: inout Interpreter, arguments: [Any?]) throws -> Any?
+    public func call(interpreter: Interpreter, arguments: [Any?]) throws -> Any?
     {
         return NSDate().timeIntervalSince1970
     }

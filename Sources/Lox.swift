@@ -95,7 +95,7 @@ class Lox
             return;
         }
 
-        var resolver = Resolver(interpreter: Self.interpreter)
+        let resolver = Resolver(interpreter: Self.interpreter)
         do
         {
             try resolver.resolve(statements: statements)

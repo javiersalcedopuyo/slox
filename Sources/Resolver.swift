@@ -7,14 +7,14 @@
 //     case ReturnFromOutsideFunction
 // }
 
-struct Resolver: ExpressionVisitor, StatementVisitor
+class Resolver: ExpressionVisitor, StatementVisitor
 {
     typealias R = Any?
     // - MARK: Public
     public init(interpreter i: Interpreter) { self.interpreter = i }
 
 
-    public mutating func resolve(statements: [Statement]) throws
+    public func resolve(statements: [Statement]) throws
     {
         for s in statements
         {
@@ -23,7 +23,7 @@ struct Resolver: ExpressionVisitor, StatementVisitor
     }
 
 
-    public mutating func visit(_ block: Block) throws -> Any?
+    public func visit(_ block: Block) throws -> Any?
     {
         self.startScope()
         try self.resolve(statements: block.statements)
@@ -31,7 +31,7 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         return nil
     }
 
-    public mutating func visit(_ varstatement: VarStatement) throws -> Any?
+    public func visit(_ varstatement: VarStatement) throws -> Any?
     {
         self.declare(varstatement.name)
         if let initializer = varstatement.initializer
@@ -42,7 +42,7 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         return nil
     }
 
-    public mutating func visit(_ variable: Variable) throws -> Any?
+    public func visit(_ variable: Variable) throws -> Any?
     {
         if !self.scopes.isEmpty
         {
@@ -50,13 +50,13 @@ struct Resolver: ExpressionVisitor, StatementVisitor
             {
                 Lox.error(
                     line:variable.name.line,
-                    message: "Undeclared variable \(variable.name.lexeme).")
+                    message: "Resolver error: Undeclared variable \(variable.name.lexeme).")
             }
             else if self.scopes[0][variable.name.lexeme]!.status == .Declared
             {
                 Lox.error(
                     line:variable.name.line,
-                    message: "Variable \(variable.name.lexeme) accessed during its own initialization.")
+                    message: "Resolver error: Variable \(variable.name.lexeme) accessed during its own initialization.")
             }
         }
 
@@ -64,14 +64,14 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         return nil
     }
 
-    public mutating func visit(_ assignment: Assignment) throws -> Any?
+    public func visit(_ assignment: Assignment) throws -> Any?
     {
         try self.resolve(expression: assignment.value)
         self.resolve(local_expression: assignment, with_name: assignment.name.lexeme)
         return nil
     }
 
-    public mutating func visit(_ classdeclaration: ClassDeclaration) throws -> Any?
+    public func visit(_ classdeclaration: ClassDeclaration) throws -> Any?
     {
         self.declare(classdeclaration.name)
         self.define(classdeclaration.name.lexeme)
@@ -85,7 +85,7 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         return nil
     }
 
-    public mutating func visit(_ funstatement: FunStatement) throws -> Any?
+    public func visit(_ funstatement: FunStatement) throws -> Any?
     {
         self.declare(funstatement.name)
         self.define(funstatement.name.lexeme)
@@ -93,13 +93,13 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         return nil
     }
 
-    mutating public func visit(_ expressionstatement: ExpressionStatement) throws -> Any?
+    public func visit(_ expressionstatement: ExpressionStatement) throws -> Any?
     {
         try self.resolve(expression: expressionstatement.expression)
         return nil
     }
 
-    mutating public func visit(_ conditionalstatement: ConditionalStatement) throws -> Any?
+    public func visit(_ conditionalstatement: ConditionalStatement) throws -> Any?
     {
         try self.resolve(expression: conditionalstatement.condition)
         try self.resolve(statement: conditionalstatement.then_branch)
@@ -110,18 +110,18 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         return nil
     }
 
-    mutating public func visit(_ print: Print) throws -> Any?
+    public func visit(_ print: Print) throws -> Any?
     {
         try self.resolve(expression: print.expression)
         return nil
     }
 
-    mutating public func visit(_ returnstatment: ReturnStatment) throws -> Any?
+    public func visit(_ returnstatment: ReturnStatment) throws -> Any?
     {
         if self.current_function == nil
         {
             // TODO: Report the line
-            Lox.error(line: -1, message: "Return statement outside of function.")
+            Lox.error(line: -1, message: "Resolver error: Return statement outside of function.")
         }
 
         if let e = returnstatment.value
@@ -131,7 +131,7 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         return nil
     }
 
-    mutating public func visit(_ whilestatement: WhileStatement) throws -> Any?
+    public func visit(_ whilestatement: WhileStatement) throws -> Any?
     {
         try self.resolve(expression: whilestatement.condition)
         try self.resolve(statement: whilestatement.body)
@@ -139,14 +139,14 @@ struct Resolver: ExpressionVisitor, StatementVisitor
     }
 
 
-    mutating public func visit(_ binary: Binary) throws -> Any?
+    public func visit(_ binary: Binary) throws -> Any?
     {
         try self.resolve(expression: binary.left)
         try self.resolve(expression: binary.right)
         return nil
     }
 
-    mutating public func visit(_ call: Call) throws -> Any?
+    public func visit(_ call: Call) throws -> Any?
     {
         try self.resolve(expression: call.callee)
         for e in call.arguments
@@ -156,40 +156,40 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         return nil
     }
 
-    public mutating func visit(_ getter: Getter) throws -> Any?
+    public func visit(_ getter: Getter) throws -> Any?
     {
         try self.resolve(expression: getter.obj)
         // NOTE: Because properties are looked up dynamically, they don't get resolved
         return nil
     }
 
-    public mutating func visit(_ setter: Setter) throws -> Any?
+    public func visit(_ setter: Setter) throws -> Any?
     {
         try self.resolve(expression: setter.value)
         try self.resolve(expression: setter.obj)
         return nil
     }
 
-    mutating public func visit(_ grouping: Grouping) throws -> Any?
+    public func visit(_ grouping: Grouping) throws -> Any?
     {
         try self.resolve(expression: grouping.expression)
         return nil
     }
 
-    mutating public func visit(_ logical: Logical) throws -> Any?
+    public func visit(_ logical: Logical) throws -> Any?
     {
         try self.resolve(expression: logical.left)
         try self.resolve(expression: logical.right)
         return nil
     }
 
-    mutating public func visit(_ unary: Unary) throws -> Any?
+    public func visit(_ unary: Unary) throws -> Any?
     {
         try self.resolve(expression: unary.right)
         return nil
     }
 
-    mutating public func visit(_ ternary: Ternary) throws -> Any?
+    public func visit(_ ternary: Ternary) throws -> Any?
     {
         try self.resolve(expression: ternary.condition)
         try self.resolve(expression: ternary.then_branch)
@@ -197,17 +197,17 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         return nil
     }
 
-    mutating public func visit(_ literalexp: LiteralExp) throws -> Any? { nil }
-    mutating public func visit(_ funexpression: FunExpression) throws -> Any? { nil }
-    mutating public func visit(_ breakstatement: BreakStatement) throws -> Any? { nil }
+    public func visit(_ literalexp: LiteralExp) throws -> Any? { nil }
+    public func visit(_ funexpression: FunExpression) throws -> Any? { nil }
+    public func visit(_ breakstatement: BreakStatement) throws -> Any? { nil }
 
     // - MARK: Private
-    private mutating func startScope()
+    private func startScope()
     {
         self.scopes.insert([:], at: 0)
     }
 
-    private mutating func endScope()
+    private func endScope()
     {
         assert( !self.scopes.isEmpty )
         for entry in self.scopes[0]
@@ -216,13 +216,13 @@ struct Resolver: ExpressionVisitor, StatementVisitor
             {
                 Lox.error(
                     line: entry.value.name.line,
-                    message: "Local variable \(entry.value.name.lexeme) unused." )
+                    message: "Resolver error: Local variable \(entry.value.name.lexeme) unused." )
             }
         }
         self.scopes.removeFirst()
     }
 
-    private mutating func declare(_ name: Token)
+    private func declare(_ name: Token)
     {
         if self.scopes.isEmpty
         {
@@ -233,12 +233,12 @@ struct Resolver: ExpressionVisitor, StatementVisitor
             // TODO: Report where it was defined?
             Lox.error(
                 line: name.line,
-                message: "Variable \(name.lexeme) is already defined in this scope.")
+                message: "Resolver error: Variable \(name.lexeme) is already defined in this scope.")
         }
         self.scopes[0][name.lexeme] = ResolvedVariable( name: name, status: .Declared )
     }
 
-    private mutating func define(_ name: String)
+    private func define(_ name: String)
     {
         if self.scopes.isEmpty
         {
@@ -250,17 +250,17 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         self.scopes[0][name]!.status = .Defined
     }
 
-    private mutating func resolve(statement: Statement) throws
+    private func resolve(statement: Statement) throws
     {
-        _ = try statement.accept(visitor: &self)
+        _ = try statement.accept(visitor: self)
     }
 
-    private mutating func resolve(expression: Expression) throws
+    private func resolve(expression: Expression) throws
     {
-        _ = try expression.accept(visitor: &self)
+        _ = try expression.accept(visitor: self)
     }
 
-    private mutating func resolve(local_expression: Expression, with_name name: String)
+    private func resolve(local_expression: Expression, with_name name: String)
     {
         for (i, scope) in self.scopes.enumerated()
         {
@@ -272,7 +272,7 @@ struct Resolver: ExpressionVisitor, StatementVisitor
         }
     }
 
-    private mutating func resolve(function: FunExpression) throws
+    private func resolve(function: FunExpression) throws
     {
         let enclosing_function = self.current_function
         defer{ self.current_function = enclosing_function }
