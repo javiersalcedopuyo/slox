@@ -104,7 +104,7 @@ class Interpreter: ExpressionVisitor, StatementVisitor
             try self.current_scope.assign(
                 at_distance: distance,
                 name: assignment.name,
-                value: assignment.value)
+                value: try self.evaluate(expression: assignment.value))
         }
         else
         {
@@ -423,7 +423,7 @@ class Interpreter: ExpressionVisitor, StatementVisitor
 
     public func visit(_ variable: Variable) throws -> R
     {
-        try self.current_scope.get(name: variable.name)
+        try self.look_up(variable_name: variable.name, expression: variable)
     }
 
 

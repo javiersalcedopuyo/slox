@@ -45,19 +45,12 @@ class Resolver: ExpressionVisitor, StatementVisitor
     public func visit(_ variable: Variable) throws -> Any?
     {
         if !self.scopes.isEmpty
+            && self.scopes[0][variable.name.lexeme] != nil
+            && self.scopes[0][variable.name.lexeme]!.status == .Declared
         {
-            if self.scopes[0][variable.name.lexeme] == nil
-            {
-                Lox.error(
-                    line:variable.name.line,
-                    message: "Resolver error: Undeclared variable \(variable.name.lexeme).")
-            }
-            else if self.scopes[0][variable.name.lexeme]!.status == .Declared
-            {
-                Lox.error(
-                    line:variable.name.line,
-                    message: "Resolver error: Variable \(variable.name.lexeme) accessed during its own initialization.")
-            }
+            Lox.error(
+                line:variable.name.line,
+                message: "Resolver error: Variable \(variable.name.lexeme) accessed during its own initialization.")
         }
 
         self.resolve(local_expression: variable, with_name: variable.name.lexeme)
