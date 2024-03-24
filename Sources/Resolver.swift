@@ -86,6 +86,12 @@ class Resolver: ExpressionVisitor, StatementVisitor
         return nil
     }
 
+    public func visit(_ funexpression: FunExpression) throws -> Any?
+    { 
+        try self.resolve(function: funexpression)
+        return nil
+    }
+
     public func visit(_ expressionstatement: ExpressionStatement) throws -> Any?
     {
         try self.resolve(expression: expressionstatement.expression)
@@ -191,7 +197,6 @@ class Resolver: ExpressionVisitor, StatementVisitor
     }
 
     public func visit(_ literalexp: LiteralExp) throws -> Any? { nil }
-    public func visit(_ funexpression: FunExpression) throws -> Any? { nil }
     public func visit(_ breakstatement: BreakStatement) throws -> Any? { nil }
 
     // - MARK: Private
