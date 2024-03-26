@@ -3,6 +3,13 @@ import Foundation
 @main
 class Lox
 {
+    public init()
+    {
+        Lox.had_error = false
+        Lox.had_runtime_error = false
+        Lox.interpreter = Interpreter()
+    }
+
     public static func main()
     {
         let lox = Lox()
@@ -14,6 +21,15 @@ class Lox
             case 1:     lox.run_prompt()
             case 2:     lox.run(file: arguments[1])
             default:    fatalError("Too many arguments. Usage: slox [script]")
+        }
+
+        if Self.had_error
+        {
+            exit(65)
+        }
+        if Self.had_runtime_error
+        {
+            exit(70)
         }
     }
 
@@ -60,7 +76,7 @@ class Lox
 
 
 
-    private func run(file file_name: String)
+    internal func run(file file_name: String)
     {
         guard let file_contents = try? String(contentsOf: URL(fileURLWithPath: file_name),
                                               encoding: .utf8)
@@ -70,15 +86,6 @@ class Lox
         }
 
         self.run(source: file_contents, repl_mode: false)
-
-        if Self.had_error
-        {
-            exit(65)
-        }
-        if Self.had_runtime_error
-        {
-            exit(70)
-        }
     }
 
 
@@ -127,7 +134,7 @@ class Lox
 
 
     // MARK: - Members
-    private static var had_error = false
-    private static var had_runtime_error = false
+    internal static var had_error = false
+    internal static var had_runtime_error = false
     private static var interpreter = Interpreter()
 }
