@@ -1,0 +1,6 @@
+print this;
+
+fun not_a_method()
+{
+	print this;
+}

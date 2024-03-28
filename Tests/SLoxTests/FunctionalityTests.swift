@@ -103,6 +103,16 @@ final class FunctionalityTests: XCTestCase
     }
 
 
+    func test_invalid_use_of_this()
+    {
+        let lox = Lox()
+        let test_path = "Tests/test_invalid_use_of_this.slox"
+        lox.run(file: test_path)
+        XCTAssert( Lox.had_error )
+        XCTAssert( !Lox.had_runtime_error )
+    }
+
+
     func test_exercise_9_3()
     {
         let lox = Lox()

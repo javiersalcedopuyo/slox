@@ -66,6 +66,9 @@ class Resolver: ExpressionVisitor, StatementVisitor
 
     public func visit(_ classdeclaration: ClassDeclaration) throws -> Any?
     {
+        let enclosing_class_type = self.current_class_type
+        self.current_class_type = .Class
+
         self.declare(classdeclaration.name)
         self.define(classdeclaration.name.lexeme)
 
@@ -79,6 +82,8 @@ class Resolver: ExpressionVisitor, StatementVisitor
         }
 
         self.endScope()
+
+        self.current_class_type = enclosing_class_type
 
         return nil
     }
@@ -203,7 +208,19 @@ class Resolver: ExpressionVisitor, StatementVisitor
 
     public func visit(_ thisexpression: ThisExpression) throws -> Any?
     {
-        self.resolve(local_expression: thisexpression, with_name: thisexpression.keyword.lexeme)
+        if self.current_class_type == .Class
+        {
+            self.resolve(
+                local_expression: thisexpression,
+                with_name: thisexpression.keyword.lexeme)
+        }
+        else
+        {
+            Lox.error(
+                line: thisexpression.keyword.line,
+                message: "Resolver error: Use of `this` outside a class.")
+        }
+
         return nil
     }
 
@@ -304,6 +321,7 @@ class Resolver: ExpressionVisitor, StatementVisitor
     private var scopes: [[String: ResolvedVariable]] = [[:]] // Name -> Have we finished resolving its initializer?
     private var interpreter: Interpreter
     private var current_function: FunctionType? = nil
+    private var current_class_type: ClassType = .None
 
     private struct ResolvedVariable
     {
@@ -316,5 +334,11 @@ class Resolver: ExpressionVisitor, StatementVisitor
             case Defined = 1
             case Read = 2
         }
+    }
+
+    private enum ClassType
+    {
+        case None
+        case Class
     }
 }
