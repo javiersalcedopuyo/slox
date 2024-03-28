@@ -69,11 +69,16 @@ class Resolver: ExpressionVisitor, StatementVisitor
         self.declare(classdeclaration.name)
         self.define(classdeclaration.name.lexeme)
 
+        self.startScope()
+        self.scopes[0]["this"] = ResolvedVariable(name: classdeclaration.name , status: .Read)
+
         for method in classdeclaration.methods
         {
             assert(method.function.type == .Method);
             try self.resolve(function: method.function)
         }
+
+        self.endScope()
 
         return nil
     }
@@ -193,6 +198,12 @@ class Resolver: ExpressionVisitor, StatementVisitor
         try self.resolve(expression: ternary.condition)
         try self.resolve(expression: ternary.then_branch)
         try self.resolve(expression: ternary.else_branch)
+        return nil
+    }
+
+    public func visit(_ thisexpression: ThisExpression) throws -> Any?
+    {
+        self.resolve(local_expression: thisexpression, with_name: thisexpression.keyword.lexeme)
         return nil
     }
 

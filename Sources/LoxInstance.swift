@@ -14,7 +14,7 @@ class LoxInstance
         }
         else if let m = self.lox_class.methods[name.lexeme]
         {
-            return m
+            return m.bind(instance: self)
         }
         throw RuntimeError.UndefinedProperty(property: name)
     }

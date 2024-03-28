@@ -226,6 +226,12 @@ class Interpreter: ExpressionVisitor, StatementVisitor
     }
 
 
+    public func visit(_ thisexpression: ThisExpression) throws -> Any?
+    {
+        try self.look_up(variable_name: thisexpression.keyword, expression: thisexpression)
+    }
+
+
     public func visit(_ logical: Logical) throws -> Any?
     {
         let left = try self.evaluate(expression: logical.left)

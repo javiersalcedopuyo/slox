@@ -77,6 +77,16 @@ class ASTPrinter : ExpressionVisitor
 
 
 
+    /// "Prettyfies" a `This` expression
+    /// - Parameter this: The expression to transform
+    /// - Returns: The "prettyfied" expression
+    public func visit(_ this: ThisExpression) throws -> String
+    {
+        this.keyword.lexeme
+    }
+
+
+
     /// "Prettyfies" a `Logical` expression
     /// - Parameter logical: The expression to transform
     /// - Returns: The "prettyfied" expression
@@ -248,6 +258,16 @@ struct ASTPrinterReversePolishNotation: ExpressionVisitor
                 ternary.condition,
                 ternary.then_branch,
                 ternary.else_branch)
+    }
+
+
+
+    /// "Prettyfies" a `This` expression
+    /// - Parameter this: The expression to transform
+    /// - Returns: The "prettyfied" expression
+    public func visit(_ this: ThisExpression) throws -> String
+    {
+        this.keyword.lexeme
     }
 
 

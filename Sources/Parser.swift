@@ -673,6 +673,11 @@ struct Parser
             throw ParserError.MissingLeftOperand(token: token)
         }
 
+        if match_and_advance(tokens: .THIS)
+        {
+            return ThisExpression(keyword: self.previous())
+        }
+
         throw ParserError.ExpectedExpression(token: self.peek())
     }
 

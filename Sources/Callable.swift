@@ -44,6 +44,16 @@ struct Function: Callable
         return nil
     }
 
+
+    public func bind(instance: LoxInstance) -> Function
+    {
+        let environment = Environment(in_scope: self.closure)
+        environment.define(name: "this", value: instance)
+
+        return Function(declaration: self.declaration, closure: environment)
+    }
+
+
     // - MARK: Private
     private let declaration: FunExpression
     private let closure: Environment // The Environment active when the function was *declared*
