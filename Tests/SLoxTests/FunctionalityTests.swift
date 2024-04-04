@@ -113,6 +113,26 @@ final class FunctionalityTests: XCTestCase
     }
 
 
+    func test_initializers()
+    {
+        let lox = Lox()
+        let test_path = "Tests/test_initializers.slox"
+        lox.run(file: test_path)
+        XCTAssert( !Lox.had_error )
+        XCTAssert( !Lox.had_runtime_error )
+    }
+
+
+    func test_init_invalid_return()
+    {
+        let lox = Lox()
+        let test_path = "Tests/test_init_invalid_return.slox"
+        lox.run(file: test_path)
+        XCTAssert( Lox.had_error )
+        XCTAssert( !Lox.had_runtime_error )
+    }
+
+
     func test_exercise_9_3()
     {
         let lox = Lox()

@@ -322,7 +322,7 @@ class Interpreter: ExpressionVisitor, StatementVisitor
 
     public func visit(_ function: FunExpression) throws -> R
     {
-        return Function(declaration: function, closure: self.current_scope)
+        return Function(declaration: function, closure: self.current_scope, is_initializer: false)
     }
 
 
@@ -363,7 +363,8 @@ class Interpreter: ExpressionVisitor, StatementVisitor
         {
             methods[method.name.lexeme] = Function(
                 declaration: method.function,
-                closure: self.current_scope)
+                closure: self.current_scope,
+                is_initializer: method.name.lexeme == "init")
         }
 
         let lox_class = LoxClass(
@@ -377,7 +378,11 @@ class Interpreter: ExpressionVisitor, StatementVisitor
 
     public func visit(_ funstatement: FunStatement) throws -> Any?
     {
-        let function = Function(declaration: funstatement.function, closure: self.current_scope)
+        let function = Function(
+            declaration: funstatement.function,
+            closure: self.current_scope,
+            is_initializer: false)
+
         self.current_scope.define(name: funstatement.name.lexeme, value: function)
         return nil
     }
@@ -556,7 +561,7 @@ class Interpreter: ExpressionVisitor, StatementVisitor
             return try self.global_scope.get(name: name)
         }
 
-        return try self.current_scope.get(at_distance: distance, name: name)
+        return try self.current_scope.get(at_distance: distance, name: name.lexeme)
     }
 
 

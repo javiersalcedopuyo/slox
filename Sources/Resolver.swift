@@ -77,7 +77,7 @@ class Resolver: ExpressionVisitor, StatementVisitor
 
         for method in classdeclaration.methods
         {
-            assert(method.function.type == .Method);
+            assert(method.function.type == .Method || method.function.type == .Initializer);
             try self.resolve(function: method.function)
         }
 
@@ -135,6 +135,12 @@ class Resolver: ExpressionVisitor, StatementVisitor
 
         if let e = returnstatment.value
         {
+            if self.current_function == .Initializer
+            {
+                Lox.error(
+                    line: returnstatment.keyword.line,
+                    message: "Resolver error: Can't return a value from an initializer")
+            }
             try self.resolve(expression: e)
         }
         return nil

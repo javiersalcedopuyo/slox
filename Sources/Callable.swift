@@ -13,11 +13,12 @@ struct Function: Callable
     // - MARK: Public
     public let arity: Int;
 
-    public init(declaration: FunExpression, closure: Environment)
+    public init(declaration: FunExpression, closure: Environment, is_initializer: Bool)
     {
         self.declaration = declaration
         self.arity = declaration.parameters.count
         self.closure = closure
+        self.is_initializer = is_initializer
     }
 
     public func call(interpreter: Interpreter, arguments: [Any?]) throws -> Any?
@@ -39,6 +40,12 @@ struct Function: Callable
         }
         catch FlowBreakers.Return(let value)
         {
+            if self.is_initializer
+            {
+                // An initializer always returns `nil` but we want it to return `this`.
+                // Crash if we can't find `this` in an initializer. Something has gone very wrong.
+                return try! self.closure.get(at_distance: 0, name: "this")
+            }
             return value
         }
         return nil
@@ -50,13 +57,17 @@ struct Function: Callable
         let environment = Environment(in_scope: self.closure)
         environment.define(name: "this", value: instance)
 
-        return Function(declaration: self.declaration, closure: environment)
+        return Function(
+            declaration: self.declaration,
+            closure: environment,
+            is_initializer: self.is_initializer)
     }
 
 
     // - MARK: Private
     private let declaration: FunExpression
     private let closure: Environment // The Environment active when the function was *declared*
+    private let is_initializer: Bool
 }
 
 

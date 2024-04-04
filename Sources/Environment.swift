@@ -70,18 +70,18 @@ class Environment
     }
 
 
-    public func get(at_distance distance: Int, name: Token) throws -> Any?
+    public func get(at_distance distance: Int, name: String) throws -> Any?
     {
         guard let scope = self.ancestor(with_distance: distance) else
         {
             throw RuntimeError.LocalVariableNotFoundAtExpectedDepth(
-                name: name.lexeme,
+                name: name,
                 depth: distance)
         }
-        guard let variable = scope.values[name.lexeme] else
+        guard let variable = scope.values[name] else
         {
             throw RuntimeError.LocalVariableNotFoundAtExpectedDepth(
-                name: name.lexeme,
+                name: name,
                 depth: distance)
         }
         return variable

@@ -137,9 +137,10 @@ struct Parser
     {
         let type_name = switch type
         {
-            case .Function: "function"
-            case .Method:   "method"
-            case .Lambda:   "lambda"
+            case .Function:     "function"
+            case .Method:       "method"
+            case .Lambda:       "lambda"
+            case .Initializer:  "initializer"
         }
 
         _ = try self.consume(
@@ -203,15 +204,16 @@ struct Parser
     {
         let type_name = switch type
         {
-            case .Function: "function"
-            case .Method:   "method"
-            case .Lambda:   "lambda"
+            case .Function:     "function"
+            case .Method:       "method"
+            case .Lambda:       "lambda"
+            case .Initializer:  "initializer"
         }
         let name = try self.consume(token_type: .IDENTIFIER, message: "Expected \(type_name) name.")
 
         return try FunStatement(
             name: name,
-            function: self.functionBody(of_type: type))
+            function: self.functionBody(of_type: name.lexeme == "init" ? .Initializer : type))
     }
 
 
@@ -811,4 +813,5 @@ enum FunctionType
     case Function
     case Method
     case Lambda
+    case Initializer
 }
