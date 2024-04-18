@@ -341,6 +341,7 @@ struct Scanner
     [
         "and":      .AND,
         "class":    .CLASS,
+        "static":   .STATIC,
         "else":     .ELSE,
         "false":    .FALSE,
         "for":      .FOR,

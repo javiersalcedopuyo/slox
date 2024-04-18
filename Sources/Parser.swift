@@ -137,10 +137,11 @@ struct Parser
     {
         let type_name = switch type
         {
-            case .Function:     "function"
-            case .Method:       "method"
-            case .Lambda:       "lambda"
-            case .Initializer:  "initializer"
+            case .Function:         "function"
+            case .Method:           "method"
+            case .Static_Method:    "static method"
+            case .Lambda:           "lambda"
+            case .Initializer:      "initializer"
         }
 
         _ = try self.consume(
@@ -189,14 +190,22 @@ struct Parser
         _ = try self.consume(token_type: .LEFT_BRACE, message: "Expected `{` after class declaration.")
 
         var methods: [FunStatement] = []
+        var static_methods: [FunStatement] = []
         while !self.check_current_token(of_type: .RIGHT_BRACE) && !self.is_at_end()
         {
-            methods.append( try self.funDeclaration(of_type: .Method) as! FunStatement )
+            if self.match_and_advance(tokens: .STATIC)
+            {
+                static_methods.append( try self.funDeclaration(of_type: .Static_Method) as! FunStatement )
+            }
+            else
+            {
+                methods.append( try self.funDeclaration(of_type: .Method) as! FunStatement )
+            }
         }
 
         _ = try self.consume(token_type: .RIGHT_BRACE, message: "Expected `}` after class body.")
 
-        return ClassDeclaration(name: name, methods: methods)
+        return ClassDeclaration(name: name, methods: methods, static_methods: static_methods)
     }
 
 
@@ -206,6 +215,7 @@ struct Parser
         {
             case .Function:     "function"
             case .Method:       "method"
+            case .Static_Method: "class method"
             case .Lambda:       "lambda"
             case .Initializer:  "initializer"
         }
@@ -812,6 +822,7 @@ enum FunctionType
 {
     case Function
     case Method
+    case Static_Method
     case Lambda
     case Initializer
 }

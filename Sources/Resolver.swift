@@ -80,6 +80,11 @@ class Resolver: ExpressionVisitor, StatementVisitor
             assert(method.function.type == .Method || method.function.type == .Initializer);
             try self.resolve(function: method.function)
         }
+        for method in classdeclaration.static_methods
+        {
+            assert(method.function.type == .Static_Method);
+            try self.resolve(function: method.function)
+        }
 
         self.endScope()
 

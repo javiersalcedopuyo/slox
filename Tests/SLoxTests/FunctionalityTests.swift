@@ -161,4 +161,14 @@ final class FunctionalityTests: XCTestCase
         XCTAssert( Lox.had_error )
         XCTAssert( !Lox.had_runtime_error )
     }
+
+
+    func test_exercise_12_1()
+    {
+        let lox = Lox()
+        let test_path = "Tests/test_exercise_12_1.slox"
+        lox.run(file: test_path)
+        XCTAssert( !Lox.had_error )
+        XCTAssert( !Lox.had_runtime_error )
+    }
 }

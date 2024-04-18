@@ -14,6 +14,20 @@ struct LoxClass: Callable
         return instance
     }
 
+
+    public func get(static_method name: Token) throws -> Function
+    {
+        guard let method = self.static_methods[name.lexeme] else
+        {
+            throw RuntimeError.UndefinedProperty(property: name)
+        }
+
+        // Probably not the most efficient...
+        let dummy_instance = LoxInstance(class: self)
+        return method.bind(instance: dummy_instance)
+    }
+
+
     let name: String
     var arity: Int
     {
@@ -28,4 +42,5 @@ struct LoxClass: Callable
     }
 
     var methods: [String: Function] = [:]
+    var static_methods: [String: Function] = [:]
 }

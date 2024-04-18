@@ -59,6 +59,7 @@ enum TokenType
     case FOR
     case WHILE
     case CLASS
+    case STATIC
     case SUPER
     case THIS
     case VAR

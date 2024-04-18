@@ -300,6 +300,10 @@ class Interpreter: ExpressionVisitor, StatementVisitor
         {
             return try obj.get(getter.name)
         }
+        if let obj = obj as? LoxClass
+        {
+            return try obj.get(static_method: getter.name)
+        }
         throw RuntimeError.PropertyGetterUsedOnNonInstance(line: getter.name.line)
     }
 
@@ -358,6 +362,15 @@ class Interpreter: ExpressionVisitor, StatementVisitor
     {
         self.current_scope.define(name: classdeclaration.name.lexeme, value: nil)
 
+        var static_methods: [String: Function] = [:]
+        for method in classdeclaration.static_methods
+        {
+            static_methods[method.name.lexeme] = Function(
+                declaration: method.function,
+                closure: self.current_scope,
+                is_initializer: method.name.lexeme == "init")
+        }
+
         var methods: [String: Function] = [:]
         for method in classdeclaration.methods
         {
@@ -369,7 +382,8 @@ class Interpreter: ExpressionVisitor, StatementVisitor
 
         let lox_class = LoxClass(
             name: classdeclaration.name.lexeme,
-            methods: methods)
+            methods: methods,
+            static_methods: static_methods)
 
         try self.current_scope.assign(name: classdeclaration.name, value: lox_class)
         return nil

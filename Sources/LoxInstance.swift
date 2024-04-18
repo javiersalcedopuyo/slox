@@ -7,12 +7,16 @@ class LoxInstance
 
     public func get(_ name: Token) throws -> Any
     {
-        // NOTE: Fields shadow methods!
+        // NOTE: Fields shadow methods, and methods shadow static methods!
         if let r = self.fields[name.lexeme]
         {
             return r
         }
         else if let m = self.lox_class.methods[name.lexeme]
+        {
+            return m.bind(instance: self)
+        }
+        else if let m = self.lox_class.static_methods[name.lexeme]
         {
             return m.bind(instance: self)
         }

@@ -124,6 +124,7 @@ struct ClassDeclaration: Statement
 {
 	let name: Token
 	let methods: [FunStatement]
+	let static_methods: [FunStatement]
 
 	func accept<R, V: StatementVisitor>(visitor: V) throws -> R where V.R == R { try visitor.visit(self) }
 	let uuid = UUID()

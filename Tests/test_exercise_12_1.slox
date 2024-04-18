@@ -1,0 +1,23 @@
+class Foo
+{
+	static bar(a)
+	{
+		return a * a;
+	}
+
+	static baz(a)
+	{
+		return this.bar(a) * a;
+	}
+
+	qux(a)
+	{
+		return this.baz(a) * a;
+	}
+}
+
+print "--- TESTING EXERCISE 12.1 ---";
+print Foo.bar(3); // prints `9`
+print Foo.baz(3); // prints `27`
+print Foo().qux(3); // prints `81`
+print "------";
