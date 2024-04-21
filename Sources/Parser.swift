@@ -135,42 +135,47 @@ struct Parser
 
     private mutating func functionBody(of_type type: FunctionType) throws -> FunExpression
     {
+        var type = type // Shadow it so it can be modified without using `inout`
         let type_name = switch type
         {
             case .Function:         "function"
             case .Method:           "method"
             case .Static_Method:    "static method"
+            case .Getter:           "getter"
             case .Lambda:           "lambda"
             case .Initializer:      "initializer"
         }
 
-        _ = try self.consume(
-            token_type: .LEFT_PARENTHESIS,
-            message: "Expected `(` after \(type_name) name.")
-
         var parameters: [Token] = []
-        if !self.check_current_token(of_type: .RIGHT_PARENTHESIS)
+        if self.match_and_advance(tokens: .LEFT_PARENTHESIS)
         {
-            repeat
+            if !self.check_current_token(of_type: .RIGHT_PARENTHESIS)
             {
-                if parameters.count > Self.max_number_of_function_parameters
+                repeat
                 {
-                    // Don't throw, the parser is still in a valid state.
-                    Lox.error(
-                        line: self.peek().line,
-                        message: "Too many function parameters. Limit is 255.")
-                }
+                    if parameters.count > Self.max_number_of_function_parameters
+                    {
+                        // Don't throw, the parser is still in a valid state.
+                        Lox.error(
+                            line: self.peek().line,
+                            message: "Too many function parameters. Limit is 255.")
+                    }
 
-                parameters.append(
-                    try self.consume(
-                        token_type: .IDENTIFIER,
-                        message: "Expected parameter name.") )
+                    parameters.append(
+                        try self.consume(
+                            token_type: .IDENTIFIER,
+                            message: "Expected parameter name.") )
+                }
+                while self.match_and_advance(tokens: .COMMA)
             }
-            while self.match_and_advance(tokens: .COMMA)
+            _ = try self.consume(
+                token_type: .RIGHT_PARENTHESIS,
+                message: "Expected `)` after \(type_name) parameters.")
         }
-        _ = try self.consume(
-            token_type: .RIGHT_PARENTHESIS,
-            message: "Expected `)` after \(type_name) parameters.")
+        else
+        {
+            type = .Getter
+        }
 
         _ = try self.consume(
             token_type: .LEFT_BRACE,
@@ -213,11 +218,12 @@ struct Parser
     {
         let type_name = switch type
         {
-            case .Function:     "function"
-            case .Method:       "method"
-            case .Static_Method: "class method"
-            case .Lambda:       "lambda"
-            case .Initializer:  "initializer"
+            case .Function:         "function"
+            case .Method:           "method"
+            case .Static_Method:    "class method"
+            case .Getter:           "getter"
+            case .Lambda:           "lambda"
+            case .Initializer:      "initializer"
         }
         let name = try self.consume(token_type: .IDENTIFIER, message: "Expected \(type_name) name.")
 
@@ -823,6 +829,7 @@ enum FunctionType
     case Function
     case Method
     case Static_Method
+    case Getter
     case Lambda
     case Initializer
 }

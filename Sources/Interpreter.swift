@@ -298,7 +298,16 @@ class Interpreter: ExpressionVisitor, StatementVisitor
         let obj = try self.evaluate(expression: getter.obj)
         if let obj = obj as? LoxInstance
         {
-            return try obj.get(getter.name)
+            let result = try obj.get(getter.name)
+            if let f = result as? Function
+            {
+                if f.isGetter()
+                {
+                    // Don't wait for `()`, getters are always called immediately
+                    return try f.call(interpreter: self, arguments: [])
+                }
+            }
+            return result
         }
         if let obj = obj as? LoxClass
         {

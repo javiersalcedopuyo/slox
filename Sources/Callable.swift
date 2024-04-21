@@ -64,6 +64,9 @@ struct Function: Callable
     }
 
 
+    public func isGetter() -> Bool { self.declaration.type == .Getter }
+
+
     // - MARK: Private
     private let declaration: FunExpression
     private let closure: Environment // The Environment active when the function was *declared*

@@ -77,7 +77,10 @@ class Resolver: ExpressionVisitor, StatementVisitor
 
         for method in classdeclaration.methods
         {
-            assert(method.function.type == .Method || method.function.type == .Initializer);
+            assert(method.function.type == .Method
+                || method.function.type == .Initializer
+                || method.function.type == .Getter);
+
             try self.resolve(function: method.function)
         }
         for method in classdeclaration.static_methods
