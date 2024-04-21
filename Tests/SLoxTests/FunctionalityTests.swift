@@ -115,11 +115,13 @@ final class FunctionalityTests: XCTestCase
 
     func test_initializers()
     {
+        print( "--- TESTING INITIALIZERS ---" )
         let lox = Lox()
         let test_path = "Tests/test_initializers.slox"
         lox.run(file: test_path)
         XCTAssert( !Lox.had_error )
         XCTAssert( !Lox.had_runtime_error )
+        print( "------" )
     }
 
 

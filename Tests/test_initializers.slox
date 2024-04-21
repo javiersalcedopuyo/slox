@@ -6,4 +6,15 @@ class Foo
 	}
 }
 
+class Bar
+{
+	init( a )
+	{
+		this.a = a;
+	}
+}
+
 var foo = Foo();
+
+var bar = Bar( 42 );
+print bar.a;
