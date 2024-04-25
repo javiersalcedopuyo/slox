@@ -1,5 +1,6 @@
 class LoxClass: Callable
 {
+    // - MARK: Public
     public init(
         name: String,
         superclass: LoxClass?,
@@ -27,11 +28,20 @@ class LoxClass: Callable
     }
 
 
-    public func get(static_method name: Token) throws -> Function
+    public func get(method name: String) -> Function?
     {
-        guard let method = self.static_methods[name.lexeme] else
+        guard let method = self.methods[name] else
         {
-            throw RuntimeError.UndefinedProperty(property: name)
+            return self.superclass?.get(method: name)
+        }
+        return method
+    }
+
+    public func get(static_method name: String) -> Function?
+    {
+        guard let method = self.static_methods[name] else
+        {
+            return self.superclass?.get(static_method: name)
         }
 
         // Probably not the most efficient...
@@ -42,9 +52,6 @@ class LoxClass: Callable
 
     let name: String
     let superclass: LoxClass?
-
-    var methods: [String: Function]
-    var static_methods: [String: Function]
 
     var arity: Int
     {
@@ -57,4 +64,9 @@ class LoxClass: Callable
             return 0
         }
     }
+
+
+    // - MARK: Private
+    private var methods: [String: Function]
+    private var static_methods: [String: Function]
 }

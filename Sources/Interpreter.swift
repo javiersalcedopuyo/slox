@@ -302,7 +302,7 @@ class Interpreter: ExpressionVisitor, StatementVisitor
         return try function.call(interpreter: self, arguments: arguments)
     }
 
-    
+
     public func visit(_ getter: Getter) throws -> Any?
     {
         let obj = try self.evaluate(expression: getter.obj)
@@ -321,7 +321,11 @@ class Interpreter: ExpressionVisitor, StatementVisitor
         }
         if let obj = obj as? LoxClass
         {
-            return try obj.get(static_method: getter.name)
+            guard let method = obj.get(static_method: getter.name.lexeme) else
+            {
+                throw RuntimeError.UndefinedProperty(property: getter.name)
+            }
+            return method
         }
         throw RuntimeError.PropertyGetterUsedOnNonInstance(line: getter.name.line)
     }

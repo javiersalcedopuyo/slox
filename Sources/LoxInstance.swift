@@ -12,11 +12,11 @@ class LoxInstance
         {
             return r
         }
-        else if let m = self.lox_class.methods[name.lexeme]
+        else if let m = self.lox_class.get(method: name.lexeme)
         {
             return m.bind(instance: self)
         }
-        else if let m = self.lox_class.static_methods[name.lexeme]
+        else if let m = self.lox_class.get(static_method: name.lexeme)
         {
             return m.bind(instance: self)
         }

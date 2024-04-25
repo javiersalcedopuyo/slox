@@ -180,6 +180,54 @@ final class FunctionalityTests: XCTestCase
     }
 
 
+    func test_method_inheritance()
+    {
+        let lox = Lox()
+        let test_code = """
+            class Foo
+            {
+                bar() { print "Foo.bar"; }
+            }
+
+            class Baz implements Foo {}
+
+            var baz = Baz();
+            baz.bar(); // Should print "Foo.bar"
+            """
+
+        print( "--- TESTING METHOD INHERITANCE ---" )
+        lox.run(source: test_code, repl_mode: false)
+        XCTAssert( !Lox.had_error )
+        XCTAssert( !Lox.had_runtime_error )
+        print( "------" )
+    }
+
+
+    func test_static_method_inheritance()
+    {
+        let lox = Lox()
+        let test_code = """
+            class Foo
+            {
+                static bar() { print "Foo.bar"; }
+            }
+
+            class Baz implements Foo {}
+
+            Baz.bar(); // Should print "Foo.bar"
+
+            var baz = Baz();
+            baz.bar(); // Should print "Foo.bar"
+            """
+
+        print( "--- TESTING STATIC METHOD INHERITANCE ---" )
+        lox.run(source: test_code, repl_mode: false)
+        XCTAssert( !Lox.had_error )
+        XCTAssert( !Lox.had_runtime_error )
+        print( "------" )
+    }
+
+
     func test_exercise_9_3()
     {
         let lox = Lox()
