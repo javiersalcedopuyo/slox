@@ -70,6 +70,10 @@ class Interpreter: ExpressionVisitor, StatementVisitor
                     "❌ RUNTIME ERROR: "
                     + "Function called expected \(expected) arguments but \(found) were provided.")
         }
+        catch RuntimeError.LocalVariableNotFoundAtExpectedDepth(let name, let depth)
+        {
+            Lox.runtimeError(line: -1, message: "❌ RUNTIME ERROR: Local variable `\(name)` not found at expected depth \(depth)")
+        }
         catch RuntimeError.PropertyGetterUsedOnNonInstance(let line)
         {
             Lox.runtimeError(line: line, message: "❌ RUNTIME ERROR: Property getter used on a non instance.")
