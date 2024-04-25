@@ -123,6 +123,7 @@ struct ReturnStatment: Statement
 struct ClassDeclaration: Statement
 {
 	let name: Token
+	let superclass: Variable?
 	let methods: [FunStatement]
 	let static_methods: [FunStatement]
 

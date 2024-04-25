@@ -90,7 +90,7 @@ class Lox
 
 
 
-    private func run(source: String, repl_mode: Bool)
+    internal func run(source: String, repl_mode: Bool)
     {
         var scanner     = Scanner(source: source)
         let tokens      = scanner.scan_tokens()

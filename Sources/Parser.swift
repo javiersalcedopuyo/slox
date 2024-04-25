@@ -192,6 +192,17 @@ struct Parser
     private mutating func classDeclaration() throws -> Statement
     {
         let name = try self.consume(token_type: .IDENTIFIER, message: "Expected class name." )
+
+        var superclass: Variable? = nil
+        if self.match_and_advance(tokens: .IMPLEMENTS)
+        {
+            let superclass_name = try self.consume(
+                token_type: .IDENTIFIER,
+                message: "Expected superclass name.")
+
+            superclass = Variable(name: superclass_name)
+        }
+
         _ = try self.consume(token_type: .LEFT_BRACE, message: "Expected `{` after class declaration.")
 
         var methods: [FunStatement] = []
@@ -210,7 +221,11 @@ struct Parser
 
         _ = try self.consume(token_type: .RIGHT_BRACE, message: "Expected `}` after class body.")
 
-        return ClassDeclaration(name: name, methods: methods, static_methods: static_methods)
+        return ClassDeclaration(
+            name:           name,
+            superclass:     superclass,
+            methods:        methods,
+            static_methods: static_methods)
     }
 
 

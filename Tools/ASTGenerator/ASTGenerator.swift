@@ -48,7 +48,7 @@ struct ASTGenerator
                     "Print: Expression expression",
                     "VarStatement: Token name, Expression? initializer",
                     "ReturnStatment: Token keyword, Expression? value",
-                    "ClassDeclaration: Token name, [FunStatement] methods, [FunStatement] static_methods"])
+                    "ClassDeclaration: Token name, Variable? superclass, [FunStatement] methods, [FunStatement] static_methods"])
         }
         catch
         {

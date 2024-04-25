@@ -72,6 +72,17 @@ class Resolver: ExpressionVisitor, StatementVisitor
         self.declare(classdeclaration.name)
         self.define(classdeclaration.name.lexeme)
 
+        if let superclass = classdeclaration.superclass
+        {
+            if classdeclaration.name.lexeme == superclass.name.lexeme
+            {
+                Lox.error(
+                    line: superclass.name.line,
+                    message: "RESOLVER ERROR: Class `\(classdeclaration.name.lexeme)` can't implement itself")
+            }
+            try self.resolve(expression: superclass)
+        }
+
         self.startScope()
         self.scopes[0]["this"] = ResolvedVariable(name: classdeclaration.name , status: .Read)
 

@@ -1,5 +1,17 @@
-struct LoxClass: Callable
+class LoxClass: Callable
 {
+    public init(
+        name: String,
+        superclass: LoxClass?,
+        methods: [String: Function],
+        static_methods: [String: Function])
+    {
+        self.name = name
+        self.superclass = superclass
+        self.methods = methods
+        self.static_methods = static_methods
+    }
+
     public func call(interpreter: Interpreter, arguments: [Any?]) throws -> Any?
     {
         let instance = LoxInstance(class: self)
@@ -29,6 +41,11 @@ struct LoxClass: Callable
 
 
     let name: String
+    let superclass: LoxClass?
+
+    var methods: [String: Function]
+    var static_methods: [String: Function]
+
     var arity: Int
     {
         get
@@ -40,7 +57,4 @@ struct LoxClass: Callable
             return 0
         }
     }
-
-    var methods: [String: Function] = [:]
-    var static_methods: [String: Function] = [:]
 }

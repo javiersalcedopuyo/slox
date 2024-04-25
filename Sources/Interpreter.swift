@@ -82,6 +82,12 @@ class Interpreter: ExpressionVisitor, StatementVisitor
         {
             Lox.runtimeError(line: property.line, message: "❌ RUNTIME ERROR: Undefined property \(property.lexeme)" )
         }
+        catch RuntimeError.InheritanceFromNonClass(let class_name, let superclass_name)
+        {
+            Lox.runtimeError(
+                line: class_name.line,
+                message: "❌ RUNTIME ERROR: Class `\(class_name.lexeme)` inherits from `\(superclass_name)`, which is not a class." )
+        }
         catch FlowBreakers.Break, FlowBreakers.Continue
         {
             fatalError(
@@ -369,6 +375,18 @@ class Interpreter: ExpressionVisitor, StatementVisitor
 
     public func visit(_ classdeclaration: ClassDeclaration) throws -> Any?
     {
+        var superclass: Any? = nil
+        if let declaration_superclass = classdeclaration.superclass
+        {
+            superclass = try self.evaluate(expression: declaration_superclass)
+            if superclass as? LoxClass == nil
+            {
+                throw RuntimeError.InheritanceFromNonClass(
+                    class_name: classdeclaration.name,
+                    superclass_name: declaration_superclass.name.lexeme)
+            }
+        }
+
         self.current_scope.define(name: classdeclaration.name.lexeme, value: nil)
 
         var static_methods: [String: Function] = [:]
@@ -390,8 +408,9 @@ class Interpreter: ExpressionVisitor, StatementVisitor
         }
 
         let lox_class = LoxClass(
-            name: classdeclaration.name.lexeme,
-            methods: methods,
+            name:           classdeclaration.name.lexeme,
+            superclass:     superclass as! LoxClass?, // Casting already asserted above
+            methods:        methods,
             static_methods: static_methods)
 
         try self.current_scope.assign(name: classdeclaration.name, value: lox_class)
@@ -608,6 +627,7 @@ enum RuntimeError: Error
     case LocalVariableNotFoundAtExpectedDepth(name: String, depth: Int)
     case PropertyGetterUsedOnNonInstance(line: Int)
     case PropertySetterUsedOnNonInstance(line: Int)
+    case InheritanceFromNonClass(class_name: Token, superclass_name: String)
 }
 
 

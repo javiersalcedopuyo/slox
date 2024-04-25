@@ -135,6 +135,51 @@ final class FunctionalityTests: XCTestCase
     }
 
 
+    func test_inheritance_syntax()
+    {
+        let lox = Lox()
+        let test_code = """
+            class Foo{}
+            class Bar implements Foo {}
+            """
+
+        print( "--- TESTING INHERITANCE SYNTAX ---" )
+        lox.run(source: test_code, repl_mode: false)
+        XCTAssert( !Lox.had_error )
+        XCTAssert( !Lox.had_runtime_error )
+        print( "------" )
+    }
+
+
+    func test_inherit_from_non_class()
+    {
+        let lox = Lox()
+        let test_code = """
+            var foo = "Not a class";
+            class Bar implements foo {}
+            """
+
+        print( "--- TESTING INHERITANCE FROM NON-CLASS ---" )
+        lox.run(source: test_code, repl_mode: false)
+        XCTAssert( !Lox.had_error )
+        XCTAssert( Lox.had_runtime_error )
+        print( "------" )
+    }
+
+
+    func test_self_inheritance()
+    {
+        let lox = Lox()
+        let test_code = "class Foo implements Foo {}"
+
+        print( "--- TESTING SELF-INHERITANCE ---" )
+        lox.run(source: test_code, repl_mode: false)
+        XCTAssert( Lox.had_error ) // Should have a resolver error
+        XCTAssert( !Lox.had_runtime_error )
+        print( "------" )
+    }
+
+
     func test_exercise_9_3()
     {
         let lox = Lox()
