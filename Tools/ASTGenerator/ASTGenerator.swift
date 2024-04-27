@@ -28,6 +28,7 @@ struct ASTGenerator
                     "LiteralExp: Literal? value",
                     "Logical: Expression left, Token op, Expression right",
                     "Setter: Expression obj, Token property, Expression value",
+                    "SuperExpression: Token keyword, Token method",
                     "ThisExpression: Token keyword",
                     "Unary: Token op, Expression right",
                     "Ternary: Expression condition, Expression then_branch, Expression else_branch",

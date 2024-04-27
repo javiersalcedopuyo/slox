@@ -228,6 +228,59 @@ final class FunctionalityTests: XCTestCase
     }
 
 
+    func test_super_without_property()
+    {
+        let lox = Lox()
+        let test_code = """
+            class Foo {}
+
+            class Bar implements Foo
+            {
+                baz()
+                {
+                    print super; // Syntax error
+                }
+            }
+            """
+
+        print( "--- TESTING SUPER WIHOUT PROPERTY ---" )
+        lox.run(source: test_code, repl_mode: false)
+        XCTAssert( Lox.had_error )
+        XCTAssert( !Lox.had_runtime_error )
+        print( "------" )
+    }
+
+
+    func test_superclass_methods()
+    {
+        let lox = Lox()
+        let test_code = """
+            class Foo
+            {
+                bar() { print "Foo.bar"; }
+            }
+
+            class Baz implements Foo
+            {
+                bar()
+                {
+                    super.bar();
+                    print "Baz.bar";
+                }
+            }
+
+            var baz = Baz();
+            baz.bar(); // Should print "Foo.bar" & "Baz.bar"
+            """
+
+        print( "--- TESTING SUPER-CLASS METHODS ---" )
+        lox.run(source: test_code, repl_mode: false)
+        XCTAssert( !Lox.had_error )
+        XCTAssert( !Lox.had_runtime_error )
+        print( "------" )
+    }
+
+
     func test_exercise_9_3()
     {
         let lox = Lox()

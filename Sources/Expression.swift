@@ -12,6 +12,7 @@ protocol ExpressionVisitor
 	 func visit(_ literalexp: LiteralExp) throws -> R
 	 func visit(_ logical: Logical) throws -> R
 	 func visit(_ setter: Setter) throws -> R
+	 func visit(_ superexpression: SuperExpression) throws -> R
 	 func visit(_ thisexpression: ThisExpression) throws -> R
 	 func visit(_ unary: Unary) throws -> R
 	 func visit(_ ternary: Ternary) throws -> R
@@ -113,6 +114,17 @@ struct Setter: Expression
 	let obj: Expression
 	let property: Token
 	let value: Expression
+
+	func accept<R, V: ExpressionVisitor>(visitor: V) throws -> R where V.R == R { try visitor.visit(self) }
+	let uuid = UUID()
+}
+
+
+
+struct SuperExpression: Expression
+{
+	let keyword: Token
+	let method: Token
 
 	func accept<R, V: ExpressionVisitor>(visitor: V) throws -> R where V.R == R { try visitor.visit(self) }
 	let uuid = UUID()

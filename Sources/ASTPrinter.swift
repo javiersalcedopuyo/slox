@@ -163,6 +163,16 @@ class ASTPrinter : ExpressionVisitor
 
 
 
+    /// "Prettyfies" a `Super` expression
+    /// - Parameter call: The expression to transform
+    /// - Returns: The "prettyfied" expression
+    public func visit(_ spr: SuperExpression) -> String
+    {
+        return "super"
+    }
+
+
+
     /// Prints expressions wrapping grouping and nesting in parenthesis
     /// - Parameters:
     ///   - name:
@@ -343,6 +353,16 @@ struct ASTPrinterReversePolishNotation: ExpressionVisitor
     {
         // TODO:
         "function expression (TODO)"
+    }
+
+
+
+    /// "Prettyfies" a `Super` expression
+    /// - Parameter call: The expression to transform
+    /// - Returns: The "prettyfied" expression
+    public func visit(_ spr: SuperExpression) -> String
+    {
+        return "super"
     }
 
 

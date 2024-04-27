@@ -100,5 +100,5 @@ class Environment
 
 
     private var values: [String: Any?]
-    private var enclosing_scope: Environment?
+    private(set) var enclosing_scope: Environment?
 }

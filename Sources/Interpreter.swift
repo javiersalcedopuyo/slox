@@ -397,6 +397,12 @@ class Interpreter: ExpressionVisitor, StatementVisitor
 
         self.current_scope.define(name: classdeclaration.name.lexeme, value: nil)
 
+        if superclass != nil
+        {
+            self.current_scope = Environment(in_scope: self.current_scope)
+            self.current_scope.define(name: "super", value: superclass)
+        }
+
         var static_methods: [String: Function] = [:]
         for method in classdeclaration.static_methods
         {
@@ -420,6 +426,12 @@ class Interpreter: ExpressionVisitor, StatementVisitor
             superclass:     superclass as! LoxClass?, // Casting already asserted above
             methods:        methods,
             static_methods: static_methods)
+
+        if superclass != nil
+        {
+            assert( self.current_scope.enclosing_scope != nil )
+            self.current_scope = self.current_scope.enclosing_scope!
+        }
 
         try self.current_scope.assign(name: classdeclaration.name, value: lox_class)
         return nil
@@ -501,6 +513,36 @@ class Interpreter: ExpressionVisitor, StatementVisitor
             : nil
 
         throw FlowBreakers.Return(value)
+    }
+
+
+    public func visit(_ superexpression: SuperExpression) throws -> Any?
+    {
+        guard let depth = self.locals[superexpression.uuid] else
+        {
+            throw RuntimeError.AttemptToAccessNonExistentSuperclass(superclass: superexpression.keyword)
+        }
+
+        guard let superclass = try self.current_scope.get( at_distance: depth, name: "super")
+            as? LoxClass
+        else
+        {
+            throw RuntimeError.AttemptToAccessNonExistentSuperclass(superclass: superexpression.keyword)
+        }
+
+        guard let instance = try self.current_scope.get(at_distance: depth - 1, name: "this")
+            as? LoxInstance
+        else
+        {
+            fatalError("Undefined `this`. This should never happen.")
+        }
+
+        guard let method = superclass.get(method: superexpression.method.lexeme) else
+        {
+            throw RuntimeError.UndefinedProperty(property: superexpression.method)
+        }
+
+        return method.bind(instance: instance)
     }
 
 
@@ -636,6 +678,7 @@ enum RuntimeError: Error
     case PropertyGetterUsedOnNonInstance(line: Int)
     case PropertySetterUsedOnNonInstance(line: Int)
     case InheritanceFromNonClass(class_name: Token, superclass_name: String)
+    case AttemptToAccessNonExistentSuperclass(superclass: Token)
 }
 
 

@@ -5,7 +5,7 @@
 // function     -> IDENTIFIER "(" parameters? ")" block;
 // parameters   -> IDENTIFIER ( "," IDENTIFIER )* ;
 // varDecl      -> "var" IDENTIFIER ( "=" expression )? ";" ;
-// classDecl    -> "class" IDENTIFIER "{" function* "}";
+// classDecl    -> "class" IDENTIFIER ("implements" IDENTIFIER)? "{" function* "}";
 // statement    -> exprStmt | printStmt | ifStmt | block | whileStmt | forStmt | returnStmt;
 // returnStmt   -> "return" expression? ";";
 // whileStmt    -> "while" "("expression")" statement;
@@ -35,7 +35,7 @@
 //                  | "true" | "false" | "nil"
 //                  | "(" expression ")"
 //                  | IDENTIFIER
-//                  | "fun" "(" parameters? ")" block;
+//                  | "super" "." IDENTIFIER
 //                  // Error productions
 //                  | ( "!=" | "==" ) equality
 //                  | ( ">" | ">=" | "<" | "<=" ) comparison
@@ -704,6 +704,18 @@ struct Parser
             let token = self.previous()
             try _ = self.factor() // Advance until the end of the expression
             throw ParserError.MissingLeftOperand(token: token)
+        }
+
+        if match_and_advance(tokens: .SUPER)
+        {
+            let keyword = self.previous()
+            _ = try self.consume(token_type: .DOT, message: "Expected `.` after `super` keyword.")
+
+            let method = try self.consume(
+                token_type: .IDENTIFIER,
+                message: "Expected superclass method name.")
+
+            return SuperExpression(keyword: keyword, method: method)
         }
 
         if match_and_advance(tokens: .THIS)

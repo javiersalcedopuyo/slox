@@ -81,6 +81,9 @@ class Resolver: ExpressionVisitor, StatementVisitor
                     message: "RESOLVER ERROR: Class `\(classdeclaration.name.lexeme)` can't implement itself")
             }
             try self.resolve(expression: superclass)
+
+            self.startScope()
+            self.scopes[0]["super"] = ResolvedVariable(name: superclass.name, status: .Read)
         }
 
         self.startScope()
@@ -101,6 +104,10 @@ class Resolver: ExpressionVisitor, StatementVisitor
         }
 
         self.endScope()
+        if classdeclaration.superclass != nil
+        {
+            self.endScope()
+        }
 
         self.current_class_type = enclosing_class_type
 
@@ -246,6 +253,12 @@ class Resolver: ExpressionVisitor, StatementVisitor
                 message: "Resolver error: Use of `this` outside a class.")
         }
 
+        return nil
+    }
+
+    public func visit(_ superexpression: SuperExpression) throws -> Any?
+    {
+        self.resolve(local_expression: superexpression, with_name: superexpression.keyword.lexeme)
         return nil
     }
 
