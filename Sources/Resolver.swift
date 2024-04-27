@@ -74,6 +74,7 @@ class Resolver: ExpressionVisitor, StatementVisitor
 
         if let superclass = classdeclaration.superclass
         {
+            self.current_class_type = .Subclass
             if classdeclaration.name.lexeme == superclass.name.lexeme
             {
                 Lox.error(
@@ -258,6 +259,20 @@ class Resolver: ExpressionVisitor, StatementVisitor
 
     public func visit(_ superexpression: SuperExpression) throws -> Any?
     {
+        switch self.current_class_type
+        {
+            case .None:
+                Lox.error(
+                    line: superexpression.keyword.line,
+                    message: "Resolver error: Use of `super` outside a class.")
+
+            case .Class:
+                Lox.error(
+                    line: superexpression.keyword.line,
+                    message: "Resolver error: Use of `super` in a base class.")
+
+            case .Subclass: break // Working as intended
+        }
         self.resolve(local_expression: superexpression, with_name: superexpression.keyword.lexeme)
         return nil
     }
@@ -378,5 +393,6 @@ class Resolver: ExpressionVisitor, StatementVisitor
     {
         case None
         case Class
+        case Subclass
     }
 }

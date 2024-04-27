@@ -281,6 +281,41 @@ final class FunctionalityTests: XCTestCase
     }
 
 
+    func test_using_super_outside_class()
+    {
+        let lox = Lox()
+        let test_code = "super.foo();"
+
+        print( "--- TESTING USING SUPER OUTSIDE CLASS ---" )
+        lox.run(source: test_code, repl_mode: false)
+        XCTAssert( Lox.had_error )
+        XCTAssert( !Lox.had_runtime_error )
+        print( "------" )
+    }
+
+
+    func test_using_super_in_base_class()
+    {
+        let lox = Lox()
+        let test_code = """
+            class Foo
+            {
+                bar()
+                {
+                    super.bar();
+                    print "Foo.bar";
+                }
+            }
+            """
+
+        print( "--- TESTING USING SUPER IN BASE CLASS ---" )
+        lox.run(source: test_code, repl_mode: false)
+        XCTAssert( Lox.had_error )
+        XCTAssert( !Lox.had_runtime_error )
+        print( "------" )
+    }
+
+
     func test_exercise_9_3()
     {
         let lox = Lox()
